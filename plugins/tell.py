@@ -103,14 +103,8 @@ def tellinput(event, conn, db, nick, notice):
     :type conn: cloudbot.client.Client
     :type db: sqlalchemy.orm.Session
     """
-    if 'showtells' in event.content.lower():
-        return
-
-    if tell_check(conn.name, nick):
-        tells = get_unread(db, conn.name, nick)
-    else:
-        return
-
+    tells = get_unread(db, conn.name, nick)
+    
     if tells:
         user_from, message, time_sent = tells[0]
         reltime = timeformat.time_since(time_sent)
