@@ -10,12 +10,11 @@ from pathlib import Path
 original_wd = Path().resolve()
 
 # set up environment - we need to make sure we are in the install directory
-path0 = Path(sys.path[0] or '.').resolve()
-install_dir = Path(__file__).resolve().parent
+path0 = os.path.realpath(sys.path[0] or '.')
+install_dir = os.path.realpath(os.path.dirname(__file__))
 if path0 == install_dir:
-    sys.path[0] = path0 = install_dir.parent
-
-os.chdir(str(install_dir.parent))
+    sys.path[0] = path0 = os.path.dirname(install_dir)
+os.chdir(path0)
 
 # import bot
 from cloudbot.bot import CloudBot
