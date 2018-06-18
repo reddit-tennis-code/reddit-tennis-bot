@@ -28,7 +28,7 @@ def load_api(bot):
     cx = bot.config.get("api_keys", {}).get("google_cse_id", None)
 
 
-@hook.command('gse')
+@hook.command('gse', 'g')
 def gse(text):
     """<query> -- Returns first Google search result for <query>."""
     if not dev_key:
@@ -54,7 +54,7 @@ def gse(text):
     return u'{} -- \x02{}\x02: "{}"'.format(result['link'], title, content)
 
 
-@hook.command('gseis', 'image')
+@hook.command('gseis', 'image', 'gis')
 def gse_gis(text):
     """<query> -- Returns first Google Images result for <query>."""
     if not dev_key:
@@ -63,7 +63,6 @@ def gse_gis(text):
         return "This command requires a custom Google Search Engine ID."
 
     parsed = requests.get(API_CS, params={"cx": cx, "q": text, "searchType": "image", "key": dev_key}).json()
-
     try:
         result = parsed['items'][0]
         metadata = parsed['items'][0]['image']
