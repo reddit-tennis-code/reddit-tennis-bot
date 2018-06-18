@@ -276,11 +276,12 @@ def scores(text):
         elif text.lower().split()[-1] in tourney_list:
             final_tstring = []
             for i in range(len(results)):
+                final_t = ''
                 tourney = results[i]
                 temp_input = text.lower().split('-')
                 fix_input = ' '.join(temp_input)
                 if fix_input in tourney['city'].lower():
-                    final_tstring = final_tstring + f'{bold}{tourney["name"]} ({tourney["city"]}, {tourney["country"]}){bold}: '
+                    final_t = final_t + f'{bold}{tourney["name"]} ({tourney["city"]}, {tourney["country"]}){bold}: '
                     ot = ''
                     nst = ''
                     ft = ''
@@ -376,8 +377,8 @@ def scores(text):
                             except IndexError:
                                 pass
                             nst = nst + s + ' '
-                    final_tstring.append(ot + nst + ft + '\n')
-                    break
+                    final_t = final_t + ot + nst + ft + '\n'
+                    final_tstring.append(final_t)
             if not final_tstring or len(text.lower().split()[-1]) < 3:
                 return("Please pick a valid tour (ATP, WTA, CM (Men's Challenger), or CW (Women's Challenger), a player that has been/is in/will be in a match today.), or a current tournament (city name, use a dash if there are two words). Player name/tournament input must be at least 3 characters (sorry Li Na).")
             else:
@@ -487,11 +488,10 @@ def scores(text):
                             try:
                                 final_p = final_p + f', {first_set_num[4]}-{second_set_num[4]}'
                             except IndexError:
-                                pass    
+                                pass
                         final_pstring.append(final_p)
             if not final_pstring or len(text.lower().split()[-1]) < 3:
                 return("Please pick a valid tour (ATP, WTA, CM (Men's Challenger), or CW (Women's Challenger), a player that has been/is in/will be in a match today.), or a current tournament (city name, use a dash if there are two words). Player name/tournament input must be at least 3 characters (sorry Li Na).")
             else:
                 for i in range(len(final_pstring)):
                     return(final_pstring[i])
-
