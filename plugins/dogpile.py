@@ -14,7 +14,7 @@ HEADERS = {
 }
 
 
-@hook.command("dpis", "gis")
+#@hook.command("dpis", "gis")
 def dogpileimage(text):
     """<query> - Uses the dogpile search engine to search for images."""
     image_url = search_url + "/images"
@@ -32,7 +32,7 @@ def dogpileimage(text):
     return image
 
 
-@hook.command("dp", "g", "dogpile")
+#@hook.command("dp", "g", "dogpile")
 def dogpile(text):
     """<query> - Uses the dogpile search engine to find shit on the web."""
     web_url = search_url + "/web"
