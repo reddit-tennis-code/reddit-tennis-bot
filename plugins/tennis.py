@@ -6,7 +6,7 @@ from cloudbot import hook
 
 
 @hook.command("scores", "tennis", "game", "match")
-def scores(text):
+def scores(text,reply):
 
     special_people = {'dave':'novak djokovic','delpo': 'del potro','rba':'roberto bautista','arv':'albert ramos','ddr':'kei nishikori','shoulders': 'sakkari'}
 
@@ -257,29 +257,29 @@ def scores(text):
                     return('No ATP matches today.')
                 else:
                     for i in range(len(final_mstring)):
-                        final_string = final_string + final_mstring[i] + '\n'
-                    return(final_string)
+                        reply(final_mstring[i] + '\n')
+                    return
             elif text.lower().split()[-1] == 'wta':
                 if not final_wstring:
                     return('No WTA matches today.')
                 else:
                     for i in range(len(final_wstring)):
-                        final_string = final_string + final_wstring[i] + '\n'
-                    return(final_string)
+                        reply(final_wstring[i] + '\n')
+                    return
             elif text.lower().split()[-1] == 'cm':
                 if not final_cmstring:
                     return("No ATP Challenger matches today.")
                 else:
                     for i in range(len(final_cmstring)):
-                        final_string = final_string + final_cmstring[i] + '\n'
-                    return(final_string)
+                        reply(final_cmstring[i] + '\n')
+                    return
             elif text.lower().split()[-1] == 'cw':
                 if not final_cwstring:
                     return("No WTA Challenger/125k matches today.")
                 else:
                     for i in range(len(final_cwstring)):
-                        final_string = final_string + final_cwstring[i] + '\n'
-                    return(final_cwstring[i])
+                        reply(final_cwstring[i] + '\n')
+                    return
         elif text.lower().split()[-1] in tourney_list:
             final_tstring = []
             for i in range(len(results)):
@@ -389,9 +389,8 @@ def scores(text):
             if not final_tstring or len(text.lower().split()[-1]) < 3:
                 return("Please pick a valid tour (ATP, WTA, CM (Men's Challenger), or CW (Women's Challenger), a player that has been/is in/will be in a match today.), or a current tournament (city name, use a dash if there are two words). Player name/tournament input must be at least 3 characters (sorry Li Na).")
             else:
-                final_string = ''
                 for i in range(len(final_tstring)):
-                    final_string = final_string + final_tstring[i] + '\n'
+                    reply(final_tstring[i] + '\n'
                 return(final_string)
         else:
             final_pstring = []
@@ -499,10 +498,10 @@ def scores(text):
                             except IndexError:
                                 pass
                         final_pstring.append(final_p)
+                        final_p = ''
             if not final_pstring or len(text.lower().split()[-1]) < 3:
                 return("Please pick a valid tour (ATP, WTA, CM (Men's Challenger), or CW (Women's Challenger), a player that has been/is in/will be in a match today.), or a current tournament (city name, use a dash if there are two words). Player name/tournament input must be at least 3 characters (sorry Li Na).")
             else:
-                final_string = ''
                 for i in range(len(final_pstring)):
-                    final_string = final_string + final_pstring[i] + '\n'
-                return(final_string)
+                    reply(final_pstring[i] + '\n')
+                return
