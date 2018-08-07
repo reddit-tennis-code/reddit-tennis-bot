@@ -8,7 +8,7 @@ from cloudbot import hook
 @hook.command("scores", "tennis", "game", "match")
 def scores(text):
 
-    special_people = {'dave':'novak djokovic','delpo': 'del potro','rba':'roberto bautista','arv':'albert ramos','ddr':'kei nishikori'}
+    special_people = {'dave':'novak djokovic','delpo': 'del potro','rba':'roberto bautista','arv':'albert ramos','ddr':'kei nishikori','shoulders': 'sakkari'}
 
     now = datetime.now()
     if now.month < 10:
@@ -47,6 +47,8 @@ def scores(text):
         gender = tournament['gender']
         match_names = []
         for match in matches:
+            if match['status'] == 'Cancelled':
+                continue
             match_data = {}
             teams = []
             round_title = match['round']
