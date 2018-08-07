@@ -7,7 +7,7 @@ from cloudbot import hook
 @hook.command('h2hw')
 def h2hw(text):
     """<name/name> will bring up the head2head record of two WTA players."""
-    rq = ' '.join(text[1:])
+    rq = text
     if not rq:
         return('Format: .h2hw sharapova/serena')
 
@@ -23,7 +23,7 @@ def h2hw(text):
         page = requests.get(f'http://www.tennisexplorer.com/list-players/?search-text-pl={rq[0]}')
         tree = html.fromstring(page.text)
         try:
-            p1text = tree.xpath('//table[@class="result"]/tbody/tr[1]/td[2]/a/text()')[0].split(',')
+            p1text = tree.xpath('//table[@class="result"]/tbody/tr[1]/td[4]/a/text()')[0].split(',')
         except IndexError:
             return('Invalid name, probably.')
         p1 = '_'.join([p1text[1][1:].replace(' ','_').replace('-','_'),p1text[0].replace(' ','_').replace('-','_')])
@@ -36,7 +36,7 @@ def h2hw(text):
         page = requests.get(f'http://www.tennisexplorer.com/list-players/?search-text-pl={rq[1]}')
         tree = html.fromstring(page.text)
         try:
-            p2text = tree.xpath('//table[@class="result"]/tbody/tr[1]/td[2]/a/text()')[0].split(',')
+            p2text = tree.xpath('//table[@class="result"]/tbody/tr[1]/td[4]/a/text()')[0].split(',')
         except IndexError:
             return('Invalid name, probably.')
         p2 = '_'.join([p2text[1][1:].replace(' ','_').replace('-','_'),p2text[0].replace(' ','_').replace('-','_')])

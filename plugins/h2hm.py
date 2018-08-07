@@ -7,7 +7,7 @@ from cloudbot import hook
 @hook.command('h2hm')
 def h2hm(text):
     """<name/name> will bring up the head2head record of two ATP players."""
-    rq = ' '.join(text[1:])
+    rq = text
     if not rq:
         return('Format: .h2hm federer/nadal')
 
