@@ -390,8 +390,8 @@ def scores(text,reply):
                 return("Please pick a valid tour (ATP, WTA, CM (Men's Challenger), or CW (Women's Challenger), a player that has been/is in/will be in a match today.), or a current tournament (city name, use a dash if there are two words). Player name/tournament input must be at least 3 characters (sorry Li Na).")
             else:
                 for i in range(len(final_tstring)):
-                    reply(final_tstring[i] + '\n'
-                return(final_string)
+                    reply(final_tstring[i] + '\n')
+                return
         else:
             final_pstring = []
             for tourney in results:
