@@ -74,9 +74,9 @@ def liverank(text,reply):
                         if '+' in prev_rank:
                             rank_flux = f'{green}{prev_rank}{colorend}'
                         elif prev_rank == '-':
-                            rank_flux = f'{red}{prev_rank}{colorend}'
+                            rank_flux = prev_rank
                         else:
-                            rank_flux = red+prev_rank+colorend
+                            rank_flux = f'{red}{prev_rank}{colorend}'
                         player = row.xpath('td[4]/text()')[0].encode('raw_unicode_escape')
                         points = row.xpath('td[7]/text()')[0]
                         tournament = row.xpath('td[10]/text()')[0].encode('raw_unicode_escape')
@@ -100,9 +100,9 @@ def liverank(text,reply):
             if '+' in prev_rank:
                 rank_flux = f'{green}{prev_rank}{colorend}'
             elif prev_rank == '-':
-                rank_flux = f'{red}{prev_rank}{colorend}'
+                rank_flux = prev_rank
             else:
-                rank_flux = red+prev_rank+colorend
+                rank_flux = f'{red}{prev_rank}{colorend}'
             player = rank_rows[i].xpath('td[4]/text()')[0].encode('raw_unicode_escape')
             top_ten = top_ten + rank + '. ' + player.decode('utf-8') + ' (' + rank_flux + '), '
         reply(top_ten[0:-2])

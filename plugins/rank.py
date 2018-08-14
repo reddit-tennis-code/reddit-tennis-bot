@@ -16,7 +16,7 @@ def rank(text,reply):
         elif text[0].lower() == 'wta':
             page = requests.get('https://live-tennis.eu/en/official-wta-ranking')
         else:
-            reply('text = Please enter ATP or WTA, optionally followed by name or ranking.')
+            reply('Please enter ATP or WTA, optionally followed by name or ranking.')
             return
     except IndexError:
         reply('Please enter ATP or WTA, optionally followed by name or ranking.')
@@ -42,9 +42,9 @@ def rank(text,reply):
                         if '+' in prev_rank:
                             rank_flux = f'{green}{prev_rank}{colorend}'
                         elif prev_rank == '-':
-                            rank_flux = f'{red}{prev_rank}{colorend}'
+                            rank_flux = prev_rank
                         else:
-                            rank_flux = red+prev_rank+colorend
+                            rank_flux = f'{red}{prev_rank}{colorend}'
                         player = row.xpath('td[3]/text()')[0].encode('raw_unicode_escape')
                         points = row.xpath('td[6]/text()')[0]
                         reply(rank + '. ' + player.decode('utf-8') + ' (' + rank_flux + ') ' + points + '\n')
