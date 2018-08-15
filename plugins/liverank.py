@@ -53,7 +53,7 @@ def liverank(text,reply):
                             tournament = 'Not playing'.encode('raw_unicode_escape')
                         if str(max_points) == '-':
                             max_points = points
-                        reply(rank + '. ' + player.decode('utf-8') + ' (' + rank_flux + ') ' + points + '. Current tournament: ' + tournament.decode('utf-8') + ', max points possible = ' + max_points + '\n')
+                        reply('#' + rank + '. ' + player.decode('utf-8') + ' (' + rank_flux + ') ' + points + 'pts' + '. Current tournament: ' + tournament.decode('utf-8') + ', max points possible = ' + max_points + '\n')
                         return
                 except IndexError:
                     continue
@@ -85,7 +85,7 @@ def liverank(text,reply):
                             tournament = 'Not playing'.encode('raw_unicode_escape')
                         if str(max_points) == '-':
                             max_points = points
-                        reply(rank + '. ' + player.decode('utf-8') + ' (' + rank_flux + ') ' + points + '. Current tournament: ' + tournament.decode('utf-8') + ', max points possible = ' + max_points + '\n')
+                        reply('#' + rank + '. ' + player.decode('utf-8') + ' (' + rank_flux + ') ' + points + 'pts' + '. Current tournament: ' + tournament.decode('utf-8') + ', max points possible = ' + max_points + '\n')
                         return
                 except IndexError:
                     continue

@@ -47,7 +47,7 @@ def rank(text,reply):
                             rank_flux = f'{red}{prev_rank}{colorend}'
                         player = row.xpath('td[3]/text()')[0].encode('raw_unicode_escape')
                         points = row.xpath('td[6]/text()')[0]
-                        reply(rank + '. ' + player.decode('utf-8') + ' (' + rank_flux + ') ' + points + '\n')
+                        reply('#' + rank + '. ' + player.decode('utf-8') + ' (' + rank_flux + ') ' + points + 'pts' + '\n')
                         return
                 except IndexError:
                     continue
@@ -73,7 +73,7 @@ def rank(text,reply):
                             rank_flux = f'{red}{prev_rank}{colorend}'
                         player = row.xpath('td[3]/text()')[0].encode('raw_unicode_escape')
                         points = row.xpath('td[6]/text()')[0]
-                        reply(rank + '. ' + player.decode('utf-8') + ' (' + rank_flux + ') ' + points + '\n')
+                        reply('#' + rank + '. ' + player.decode('utf-8') + ' (' + rank_flux + ') ' + points + 'pts' + '\n')
                         return
                 except IndexError:
                     continue
