@@ -1,8 +1,13 @@
 import requests
 from cloudbot import hook
-from xml.etree import ElementTree
+from lxml import etree
+# from xml.etree import ElementTree
 from operator import itemgetter
 from itertools import groupby, count
+import os
+from datetime import datetime
+from threading import Timer
+
 
 def batch(iterable, size):
 	""" Batch generator for output."""
@@ -80,8 +85,26 @@ def processprop(prop):
 	tmp['line'] = int(prop.get('odds'))  # to sort.
 	return tmp
 
+def cache_xml(bot):
+	xmlurl = 'http://lines.bookmaker.eu'
+	response = requests.get(xmlurl)
+	cachefile = os.path.join(bot.data_dir,'odds.xml')
+	if (not os.path.isfile(cachefile)):
+		with open(cachefile,'w') as cache:
+			cache.write(response.text)
+	else:
+		os.remove(cachefile)
+		with open(cachefile,'w') as cache:
+			cache.write(response.text)
+
+@hook.onload
+def load_xml_timer(bot):
+	cache_xml(bot)
+	t = Timer(3600.0, cache_xml, [bot])
+	t.start()
+
 @hook.command("odds")
-def odds(text, reply):
+def odds(bot, text, reply):
 	""".odds <sport> [team]. Displays various odds/lines for sporting events. Ex: .odds EPL Manch or .odds NBA LA"""
 
 	# validate input/sports.
@@ -107,8 +130,7 @@ def odds(text, reply):
 
 	# now try and parse/open XML.
 	try:
-		response = requests.get('http://lines.bookmaker.eu/')
-		tree = ElementTree.fromstring(response.content)
+		tree = etree.parse(os.path.join(bot.data_dir, 'odds.xml'),parser=etree.XMLParser(remove_blank_text=True))
 	except Exception:
 		reply("ERROR: Something broke trying to parse the XML.")
 		return
