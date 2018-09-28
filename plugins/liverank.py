@@ -32,8 +32,12 @@ def liverank(text,reply):
             for row in rank_rows:
                 try:
                     check_num = row.xpath('td[1]/text()')[0].strip()
-                    if not check_num:
+                except IndexError:
+                    try:
                         check_num = row.xpath('td[1]/span/text()')[0].strip()
+                    except IndexError:
+                        continue
+                else:
                     if text[1] == check_num:
                         try:
                             rank = row.xpath('td[1]/text()')[0].strip()
@@ -59,8 +63,6 @@ def liverank(text,reply):
                             max_points = points
                         reply('#' + rank + '. ' + player.decode('utf-8') + ' (' + rank_flux + ') ' + points + 'pts' + '. Current tournament: ' + tournament.decode('utf-8') + ', max points possible = ' + max_points + '\n')
                         return
-                except IndexError:
-                    continue
         elif text[1].isalpha():
             intxt = ' '.join(text[1:]).upper()
             input_form = unicodedata.normalize('NFKD', intxt)
@@ -68,6 +70,9 @@ def liverank(text,reply):
             for row in rank_rows:
                 try:
                     check_player = row.xpath('td[4]/text()')[0].encode('raw_unicode_escape').decode('utf-8')
+                except IndexError:
+                    continue
+                else:
                     nfkd_form = unicodedata.normalize('NFKD', check_player)
                     player_check = ''.join([c for c in nfkd_form if not unicodedata.combining(c)])
                     if new_input in player_check.upper():
@@ -95,8 +100,6 @@ def liverank(text,reply):
                             max_points = points
                         reply('#' + rank + '. ' + player.decode('utf-8') + ' (' + rank_flux + ') ' + points + 'pts' + '. Current tournament: ' + tournament.decode('utf-8') + ', max points possible = ' + max_points + '\n')
                         return
-                except IndexError:
-                    continue
         else:
             reply('Could not find ranking.')
             return
