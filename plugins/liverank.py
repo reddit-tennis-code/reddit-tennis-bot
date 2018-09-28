@@ -27,7 +27,7 @@ def liverank(text,reply):
     red = '\x0304'
     colorend = '\x03'
 
-    try:
+    if len(text) > 1:
         if text[1].isdigit():
             for row in rank_rows:
                 try:
@@ -100,7 +100,7 @@ def liverank(text,reply):
         else:
             reply('Could not find ranking.')
             return
-    except IndexError:
+    else:
         top_ten = ''
         for i in range(0,20,2):
             try:
