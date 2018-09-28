@@ -35,10 +35,14 @@ def rank(text,reply):
                     if not check_num:
                         check_num = row.xpath('td[1]/span/text()')[0].strip()
                     if text[1] == check_num:
-                        rank = row.xpath('td[1]/text()')[0].strip()
-                        if not rank:
+                        try:
+                            rank = row.xpath('td[1]/text()')[0].strip()
+                        except IndexError:
                             rank = row.xpath('td[1]/span/text()')[0].strip()
-                        prev_rank = row.xpath('td[7]/text()')[0]
+                        try:
+                            prev_rank = row.xpath('td[7]/text()')[0].strip()
+                        except IndexError:
+                            prev_rank = row.xpath('td[7]/span/text()')[0].strip()
                         if '+' in prev_rank:
                             rank_flux = f'{green}{prev_rank}{colorend}'
                         elif prev_rank == '-':
@@ -61,10 +65,14 @@ def rank(text,reply):
                     nfkd_form = unicodedata.normalize('NFKD', check_player)
                     player_check = ''.join([c for c in nfkd_form if not unicodedata.combining(c)])
                     if new_input in player_check.upper():
-                        rank = row.xpath('td[1]/text()')[0].strip()
-                        if not rank:
+                        try:
+                            rank = row.xpath('td[1]/text()')[0].strip()
+                        except IndexError:
                             rank = row.xpath('td[1]/span/text()')[0].strip()
-                        prev_rank = row.xpath('td[7]/text()')[0]
+                        try:
+                            prev_rank = row.xpath('td[7]/text()')[0].strip()
+                        except IndexError:
+                            prev_rank = row.xpath('td[7]/span/text()')[0].strip()
                         if '+' in prev_rank:
                             rank_flux = f'{green}{prev_rank}{colorend}'
                         elif prev_rank == '-':
@@ -83,8 +91,14 @@ def rank(text,reply):
     except IndexError:
         top_ten = ''
         for i in range(0,20,2):
-            rank = rank_rows[i].xpath('td[1]/text()')[0].strip()
-            prev_rank = rank_rows[i].xpath('td[7]/text()')[0]
+            try:
+                rank = rank_rows[i].xpath('td[1]/text()')[0].strip()
+            except IndexError:
+                rank = rank_rows[i].xpath('td[1]/span/text()')[0].strip()
+            try:
+                prev_rank = rank_rows[i].xpath('td[7]/text()')[0].strip()
+            except IndexError:
+                prev_rank = rank_rows[i].xpath('td[7]/span/text()')[0].strip()
             if '+' in prev_rank:
                 rank_flux = f'{green}{prev_rank}{colorend}'
             elif prev_rank == '-':
