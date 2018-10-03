@@ -57,8 +57,6 @@ def rank(text,reply):
                         points = row.xpath('td[6]/text()')[0]
                         reply('#' + rank + '. ' + player.decode('utf-8') + ' (' + rank_flux + ') ' + points + 'pts' + '\n')
                         return
-                except IndexError:
-                    continue
         elif text[1].isalpha():
             intxt = ' '.join(text[1:]).upper()
             input_form = unicodedata.normalize('NFKD', intxt)

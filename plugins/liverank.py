@@ -107,13 +107,13 @@ def liverank(text,reply):
         top_ten = ''
         for i in range(0,20,2):
             try:
-                rank = row.xpath('td[1]/text()')[0].strip()
+                rank = rank_rows[i].xpath('td[1]/text()')[0].strip()
             except IndexError:
-                rank = row.xpath('td[1]/span/text()')[0].strip()
+                rank = rank_rows[i].xpath('td[1]/span/text()')[0].strip()
             try:
-                prev_rank = row.xpath('td[8]/text()')[0].strip()
+                prev_rank = rank_rows[i].xpath('td[8]/text()')[0].strip()
             except IndexError:
-                prev_rank = row.xpath('td[8]/span/text()')[0].strip()
+                prev_rank = rank_rows[i].xpath('td[8]/span/text()')[0].strip()
             if '+' in prev_rank:
                 rank_flux = f'{green}{prev_rank}{colorend}'
             elif prev_rank == '-':
