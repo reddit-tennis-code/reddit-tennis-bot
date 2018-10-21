@@ -8,7 +8,8 @@ from cloudbot import hook
 @hook.command("scores", "tennis", "game", "match")
 def scores(text,reply):
 
-    special_people = {'dave':'novak djokovic','delpo': 'del potro','rba':'roberto bautista','arv':'albert ramos','ddr':'kei nishikori','shoulders': 'sakkari'}
+    special_people = {'dave':'novak djokovic','delpo': 'del potro','rba':'roberto bautista','arv':'albert ramos',
+                    'ddr':'kei nishikori','shoulders': 'sakkari','titsnass':'tsitsipas'}
 
     now = datetime.now()
     if now.month < 10:
