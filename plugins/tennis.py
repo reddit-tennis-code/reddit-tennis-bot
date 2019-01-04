@@ -1,6 +1,7 @@
 # coding: utf-8
 
 from datetime import datetime
+from pytz import timezone
 import requests
 from cloudbot import hook
 
@@ -11,7 +12,7 @@ def scores(text,reply):
     special_people = {'dave':'novak djokovic','delpo': 'del potro','rba':'roberto bautista','arv':'albert ramos',
                     'ddr':'kei nishikori','shoulders': 'sakkari','titsnass':'tsitsipas'}
 
-    now = datetime.now()
+    now = datetime.now(timezone('US/Eastern'))
     if now.month < 10:
         month = f'0{now.month}'
     else:
