@@ -11,7 +11,7 @@ def h2hw(text):
     if not rq:
         return('Format: .h2hw sharapova/serena')
 
-    nick_dict = {'shoulders':'Maria_Sakkari'}
+    nick_dict = {'shoulders':'Maria_Sakkari','muguruza':'Garbine_Muguruza'}
 
     rq = rq.strip()
     rq = rq.split('/')
