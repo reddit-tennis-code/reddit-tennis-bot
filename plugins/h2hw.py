@@ -26,8 +26,8 @@ def h2hw(text):
             p1text = tree.xpath('//table[@class="result"]/tbody/tr[1]/td[4]/a/text()')[0].split(',')
         except IndexError:
             return('Invalid name, probably.')
-        p1 = '_'.join([p1text[1][1:].replace(' ','_').replace('-','_'),p1text[0].replace(' ','_').replace('-','_')])
-        disp1 = ' '.join([p1text[1][1:].replace('-',' '),p1text[0].replace('-',' ')])
+        p1 = '_'.join([p1text[1][1:].replace(' ','_'),p1text[0].replace(' ','_')])
+        disp1 = ' '.join([p1text[1][1:],p1text[0]])
 
     if rq[1] in nick_dict:
         p2 = nick_dict[rq[1]]
@@ -39,8 +39,8 @@ def h2hw(text):
             p2text = tree.xpath('//table[@class="result"]/tbody/tr[1]/td[4]/a/text()')[0].split(',')
         except IndexError:
             return('Invalid name, probably.')
-        p2 = '_'.join([p2text[1][1:].replace(' ','_').replace('-','_'),p2text[0].replace(' ','_').replace('-','_')])
-        disp2 = ' '.join([p2text[1][1:].replace('-',' '),p2text[0].replace('-',' ')])
+        p2 = '_'.join([p2text[1][1:].replace(' ','_'),p2text[0].replace(' ','_')])
+        disp2 = ' '.join([p2text[1][1:],p2text[0]])
 
     page = requests.get(f'http://www.stevegtennis.com/head-to-head/women/{p1}/{p2}/')
     tree = html.fromstring(page.text)
