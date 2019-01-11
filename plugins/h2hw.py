@@ -48,7 +48,13 @@ def h2hw(text):
     try:
         w1 = tree.xpath('//table[@id="player_info"]/tr[1]/td[1]/div/text()')[0]
         w2 = tree.xpath('//table[@id="player_info"]/tr[1]/td[3]/div/text()')[0]
-        h2h = disp1 + ' ' + w1 + ' - ' + w2 + ' ' + disp2
+        lyear = tree.xpath('//tr[@class="row1"]/td[1]/text()')[0]
+        ltourney = tree.xpath('//tr[@class="row1"]/td[2]/a/text()')[0]
+        lround = tree.xpath('//tr[@class="row1"]/td[3]/text()')[0]
+        lwinner = tree.xpath('//tr[@class="row1"]/td[5]/a/text()')[0]
+        lloser = tree.xpath('//tr[@class="row1"]/td[6]/a/text()')[0]
+        lscore = tree.xpath('//tr[@class="row1"]/td[7]/text()')[0].replace(' ',', ')
+        h2h = f'{disp1} {w1} - {w2} {disp2}. Last: {lyear} {ltourney} {lround} {lwinner} d. {lloser} {lscore}'
     except IndexError:
         h2h = 'Names were chosen, but this doesn\'t work on stevegtennis for some reason.'
     return(h2h)
