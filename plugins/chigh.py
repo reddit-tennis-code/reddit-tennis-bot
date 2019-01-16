@@ -16,9 +16,9 @@ def chigh(text):
     rq = rq.strip()
     rq = rq.split(' ')
 
-    if rq[0] == 'atp':
+    if rq[0].lower() == 'atp':
         num = '2'
-    elif rq[0] == 'wta':
+    elif rq[0].lower() == 'wta':
         num = '4'
     else:
         return('Invalid tour. Please type "atp" or "wta" after the command.')
