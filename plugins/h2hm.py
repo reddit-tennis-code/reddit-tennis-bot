@@ -58,6 +58,9 @@ def h2hm(text):
         lwinner = tree.xpath('//tr[@class="row1"]/td[5]/a/text()')[0]
         lloser = tree.xpath('//tr[@class="row1"]/td[6]/a/text()')[0]
         lscore = tree.xpath('//tr[@class="row1"]/td[7]/text()')[0].replace(' ',', ')
-        return(f'{disp1} {w1} - {w2} {disp2}. Last: {lyear} {ltourney} {lround} {lwinner} d. {lloser} {lscore}')
+        if lscore == 'Upcoming':
+            return(f'{disp1} {w1} - {w2} {disp2}')
+        else:
+            return(f'{disp1} {w1} - {w2} {disp2}. Last: {lyear} {ltourney} {lround} {lwinner} d. {lloser} {lscore}')
     except IndexError:
         return(f'{disp1} {w1} - {w2} {disp2}')
