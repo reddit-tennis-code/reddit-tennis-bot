@@ -52,15 +52,25 @@ def h2hm(text):
     except IndexError:
         return('stevegtennis error')
     try:
-        lyear = tree.xpath('//tr[@class="row1"]/td[1]/text()')[0]
-        ltourney = tree.xpath('//tr[@class="row1"]/td[2]/a/text()')[0]
-        lround = tree.xpath('//tr[@class="row1"]/td[3]/text()')[0]
-        lwinner = tree.xpath('//tr[@class="row1"]/td[5]/a/text()')[0]
-        lloser = tree.xpath('//tr[@class="row1"]/td[6]/a/text()')[0]
         lscore = tree.xpath('//tr[@class="row1"]/td[7]/text()')[0].replace(' ',', ')
         if lscore == 'Upcoming':
-            return(f'{disp1} {w1} - {w2} {disp2}')
+            try:
+                lyear = tree.xpath('//tr[@class="row2"]/td[1]/text()')[0]
+                ltourney = tree.xpath('//tr[@class="row2"]/td[2]/a/text()')[0]
+                lround = tree.xpath('//tr[@class="row2"]/td[3]/text()')[0]
+                lwinner = tree.xpath('//tr[@class="row2"]/td[5]/a/text()')[0]
+                lloser = tree.xpath('//tr[@class="row2"]/td[6]/a/text()')[0]
+                lscore = tree.xpath('//tr[@class="row2"]/td[7]/text()')[0].replace(' ',', ')
+                return(f'{disp1} {w1} - {w2} {disp2}. Last: {lyear} {ltourney} {lround} {lwinner} d. {lloser} {lscore}')
+            except IndexError:
+                return(f'{disp1} {w1} - {w2} {disp2}')
         else:
+            lyear = tree.xpath('//tr[@class="row1"]/td[1]/text()')[0]
+            ltourney = tree.xpath('//tr[@class="row1"]/td[2]/a/text()')[0]
+            lround = tree.xpath('//tr[@class="row1"]/td[3]/text()')[0]
+            lwinner = tree.xpath('//tr[@class="row1"]/td[5]/a/text()')[0]
+            lloser = tree.xpath('//tr[@class="row1"]/td[6]/a/text()')[0]
+            lscore = tree.xpath('//tr[@class="row1"]/td[7]/text()')[0].replace(' ',', ')
             return(f'{disp1} {w1} - {w2} {disp2}. Last: {lyear} {ltourney} {lround} {lwinner} d. {lloser} {lscore}')
     except IndexError:
         return(f'{disp1} {w1} - {w2} {disp2}')
