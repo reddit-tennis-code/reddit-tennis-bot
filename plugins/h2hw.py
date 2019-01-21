@@ -45,7 +45,7 @@ def h2hw(text):
     page = requests.get(f'http://www.stevegtennis.com/head-to-head/women/{p1}/{p2}/')
     tree = html.fromstring(page.text)
 
-        try:
+    try:
         w1 = tree.xpath('//table[@id="player_info"]/tr[1]/td[1]/div/text()')[0]
         w2 = tree.xpath('//table[@id="player_info"]/tr[1]/td[3]/div/text()')[0]
     except IndexError:
