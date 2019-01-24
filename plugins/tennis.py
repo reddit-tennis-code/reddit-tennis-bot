@@ -1,38 +1,54 @@
 # coding: utf-8
 
 from datetime import datetime
-from pytz import timezone
+import pytz
 import requests
-from cloudbot import hook
+#from cloudbot import hook
+from geopy import geocoders
+from timezonefinder import TimezoneFinder
 
 
-@hook.command("scores", "tennis", "game", "match")
-def scores(text,reply):
+def format_date(datetimeobj):
+    """
+    Function to format datetime object to required string for ace.tennis.com service.
+    :param datetimeobj: Datetime python object
+    :return: date and time strings in a tuple/pair.
+    """
+    if datetimeobj.month < 10:
+        month = f'0{datetimeobj.month}'
+    else:
+        month = f'{datetimeobj.month}'
+    if datetimeobj.day < 10:
+        day = f'0{datetimeobj.day}'
+    else:
+        day = f'{datetimeobj.day}'
+    date_string = f'{datetimeobj.year}-{month}-{day}'
+    time_string = f'{datetimeobj.hour}{datetimeobj.minute}{datetimeobj.second}'
+
+    return date_string, time_string
+
+
+default_tz = 'US/Eastern'  # Default timezone to test first
+now = datetime.now(pytz.timezone(default_tz))  # Test with default timezone first, just to have data to use
+
+date_string, time_string = format_date(now)  # Get strings for date and time in the expected format
+
+# Fetch tournaments info based on date-time strings
+url = f'http://ace.tennis.com/pulse/{date_string}_livescores_new.json?v={time_string}'
+scores_json = requests.get(url).json()
+
+
+#@hook.command("scores", "tennis", "game", "match")
+def scores(text, reply):
 
     special_people = {'dave':'novak djokovic','delpo': 'del potro','rba':'roberto bautista','arv':'albert ramos',
                     'ddr':'kei nishikori','shoulders': 'sakkari','titsnass':'tsitsipas'}
-
-    now = datetime.now(timezone('US/Eastern'))
-    if now.month < 10:
-        month = f'0{now.month}'
-    else:
-        month = f'{now.month}'
-    if now.day < 10:
-        day = f'0{now.day}'
-    else:
-        day = f'{now.day}'
-    date_string = f'{now.year}-{month}-{day}'
-    time_string = f'{now.hour}{now.minute}{now.second}'
-
-    url = f'http://ace.tennis.com/pulse/{date_string}_livescores_new.json?v={time_string}'
-    scores_json = requests.get(url).json()
 
     tournaments = scores_json['tournaments']
     results = []
     bold = '\x02'
     color = '\x0313'
     colorend = '\x03'
-    final_string = ''
 
     for tournament in tournaments:
         tournament_data = {}
@@ -43,10 +59,26 @@ def scores(text,reply):
             continue
         elif 'Qualification' in name:
             continue
-        matches = tournament['events']
         city = tournament['location']
         country = tournament['country']
         gender = tournament['gender']
+
+        # Added to try to solve the timezone problem
+        tournament_tz  = get_location_timezone(city+'/'+country)  # Get local tournament timezone
+        local_datetime = datetime.now(pytz.timezone(tournament_tz))
+        if local_datetime.day != now.day:
+            print("ENTERING IF:", local_datetime)
+            date_string_, time_string_ = format_date(local_datetime)
+            url_ = f'http://ace.tennis.com/pulse/{date_string_}_livescores_new.json?v={time_string_}'
+            scores_json_ = requests.get(url_).json()
+            for tournament_ in scores_json_['tournaments']:
+                if tournament_['name'] == name:
+                    matches = tournament_['events']
+                else:
+                    matches = tournament['events']  # TODO: This is horrible but... whatever.
+        else:
+            matches = tournament['events']
+
         match_names = []
         for match in matches:
             if match['status'] == 'Cancelled':
@@ -507,3 +539,15 @@ def scores(text,reply):
                 for i in range(len(final_pstring)):
                     reply(final_pstring[i] + '\n')
                 return
+
+
+def get_location_timezone(location):
+    """
+    Function that gets the timezone given the name of the location (City/Country).
+    :param location: (str) Name of the location in City/Country format.
+    :return: (str) Timezone string in common format.
+    """
+    g = geocoders.Nominatim(user_agent='reddit-tennis')  # Using Nominatim geocoder, only one that worked without key
+    place, (lat, long) = g.geocode(location)
+    tf = TimezoneFinder()
+    return tf.timezone_at(lat=lat, lng=long)
