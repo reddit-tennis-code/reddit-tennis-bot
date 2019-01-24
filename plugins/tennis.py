@@ -3,7 +3,7 @@
 from datetime import datetime
 import pytz
 import requests
-#from cloudbot import hook
+from cloudbot import hook
 from geopy import geocoders
 from timezonefinder import TimezoneFinder
 
@@ -38,7 +38,7 @@ url = f'http://ace.tennis.com/pulse/{date_string}_livescores_new.json?v={time_st
 scores_json = requests.get(url).json()
 
 
-#@hook.command("scores", "tennis", "game", "match")
+@hook.command("scores", "tennis", "game", "match")
 def scores(text, reply):
 
     special_people = {'dave':'novak djokovic','delpo': 'del potro','rba':'roberto bautista','arv':'albert ramos',
