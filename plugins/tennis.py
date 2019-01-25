@@ -84,7 +84,6 @@ def scores(text, reply):
             teams = []
             round_title = match['round']
             players = match['players']
-            print(players)
 
             for player in players:
                 team_data = {}
