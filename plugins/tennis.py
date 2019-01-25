@@ -64,20 +64,17 @@ def scores(text, reply):
         gender = tournament['gender']
 
         # Added to try to solve the timezone problem
+        matches = tournament['events']  # Store events and later change if needed.
         tournament_tz  = get_location_timezone(city+'/'+country)  # Get local tournament timezone
         local_datetime = datetime.now(pytz.timezone(tournament_tz))
-        if local_datetime.day != now.day:
-            print("ENTERING IF:", local_datetime)
+        if local_datetime.day != now.day:  # Only try to change when day is different
             date_string_, time_string_ = format_date(local_datetime)
             url_ = f'http://ace.tennis.com/pulse/{date_string_}_livescores_new.json?v={time_string_}'
+            # print(url_)  # For testing purposes
             scores_json_ = requests.get(url_).json()
             for tournament_ in scores_json_['tournaments']:
                 if tournament_['name'] == name:
                     matches = tournament_['events']
-                else:
-                    matches = tournament['events']  # TODO: This is horrible but... whatever.
-        else:
-            matches = tournament['events']
 
         match_names = []
         for match in matches:
@@ -87,6 +84,7 @@ def scores(text, reply):
             teams = []
             round_title = match['round']
             players = match['players']
+            print(players)
 
             for player in players:
                 team_data = {}

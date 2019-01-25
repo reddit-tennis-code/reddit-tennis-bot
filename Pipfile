@@ -8,6 +8,8 @@ cloudbot = "*"
 geopy = "*"
 timezonefinder = "*"
 pytz = "*"
+requests = "*"
+lxml = "*"
 
 [dev-packages]
 
