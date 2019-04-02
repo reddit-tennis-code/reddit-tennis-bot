@@ -5,6 +5,10 @@ from pytz import timezone
 import requests
 from cloudbot import hook
 
+def mk_int(s):
+    s = s.strip()
+    return int(s) if s else 0
+
 
 @hook.command("scores", "tennis", "game", "match")
 def scores(text,reply):
@@ -159,7 +163,7 @@ def scores(text,reply):
                         except IndexError:
                             pass
                         try:
-                            if int(first_set_num[-1]) <= 5:
+                            if int(mk_int(first_set_num[-1])) <= 5:
                                 s = s + '(ret.)'
                         except IndexError:
                             pass
@@ -185,7 +189,7 @@ def scores(text,reply):
                         except IndexError:
                             pass
                         try:
-                            if int(second_set_num[-1]) <= 5:
+                            if int(mk_int(second_set_num[-1])) <= 5:
                                 s = s + '(ret.)'
                         except IndexError:
                             pass
@@ -333,7 +337,7 @@ def scores(text,reply):
                                 except IndexError:
                                     pass
                                 try:
-                                    if int(first_set_num[-1]) <= 5:
+                                    if int(mk_int(first_set_num[-1])) <= 5:
                                         s = s + '(ret.)'
                                 except IndexError:
                                     pass
@@ -359,7 +363,7 @@ def scores(text,reply):
                                 except IndexError:
                                     pass
                                 try:
-                                    if int(second_set_num[-1]) <= 5:
+                                    if int(mk_int(second_set_num[-1])) <= 5:
                                         s = s + '(ret.)'
                                 except IndexError:
                                     pass
@@ -448,7 +452,7 @@ def scores(text,reply):
                                 except IndexError:
                                     pass
                                 try:
-                                    if int(first_set_num[-1]) <= 5:
+                                    if int(mk_int(first_set_num[-1])) <= 5:
                                         final_p = final_p + '(ret.)'
                                 except IndexError:
                                     pass
@@ -474,7 +478,7 @@ def scores(text,reply):
                                 except IndexError:
                                     pass
                                 try:
-                                    if int(second_set_num[-1]) <= 5:
+                                    if int(mk_int(second_set_num[-1])) <= 5:
                                         final_p = final_p + '(ret.)'
                                 except IndexError:
                                     pass
