@@ -45,11 +45,11 @@ def rankhistory(text,reply):
         site_date = row.xpath('td[1]/text()')[0].strip()
         if site_date == datestr1:
             rank = row.xpath('td[2]/text()')[0].strip()
-            reply(f'{pname}: #{rank} on {date_obj.strftime("%B")}, {date_obj.strftime("%d")}th {date_obj.strftime("%Y")}')
+            reply(f'{pname}: #{rank} on {date_obj.strftime("%B")} {date_obj.strftime("%d")}th, {date_obj.strftime("%Y")}')
             return
         elif site_date == datestr2:
             rank = row.xpath('td[2]/text()')[0].strip()
-            reply(f'{pname}: #{rank} on {date_obj.strftime("%B")}, {date_obj.strftime("%d")}th {date_obj.strftime("%Y")}')
+            reply(f'{pname}: #{rank} on {date_obj.strftime("%B")} {date_obj.strftime("%d")}th, {date_obj.strftime("%Y")}')
             return
 
     reply('Valid date, but no ranking found.')
