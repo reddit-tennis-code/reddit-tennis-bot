@@ -37,9 +37,11 @@ def rankhistory(text,reply):
         reply('Invalid date format. Must be YYYY-MM-DD.')
         return
     monday1 = date_obj - datetime.timedelta(days=date_obj.weekday())
-    monday2 = (date_obj - datetime.timedelta(days=1)) - datetime.timedelta(days=(date_obj - datetime.timedelta(days=1)).weekday())
+    monday2 = (monday1 - datetime.timedelta(days=1)) - datetime.timedelta(days=(monday1 - datetime.timedelta(days=1)).weekday())
+    wednesday1 = monday2 + datetime.timedelta(days=2)
     datestr1 = f'{monday1.strftime("%Y")}.{monday1.strftime("%m")}.{monday1.strftime("%d")}'
     datestr2 = f'{monday2.strftime("%Y")}.{monday2.strftime("%m")}.{monday2.strftime("%d")}'
+    datestr3 = f'{wednesday1.strftime("%Y")}.{wednesday1.strftime("%m")}.{wednesday1.strftime("%d")}'
 
     for row in rank_rows:
         site_date = row.xpath('td[1]/text()')[0].strip()
@@ -48,6 +50,10 @@ def rankhistory(text,reply):
             reply(f'{pname}: #{rank} on {date_obj.strftime("%B")} {date_obj.strftime("%d")}, {date_obj.strftime("%Y")}')
             return
         elif site_date == datestr2:
+            rank = row.xpath('td[2]/text()')[0].strip()
+            reply(f'{pname}: #{rank} on {date_obj.strftime("%B")} {date_obj.strftime("%d")}, {date_obj.strftime("%Y")}')
+            return
+        elif site_date == datestr3:
             rank = row.xpath('td[2]/text()')[0].strip()
             reply(f'{pname}: #{rank} on {date_obj.strftime("%B")} {date_obj.strftime("%d")}, {date_obj.strftime("%Y")}')
             return
