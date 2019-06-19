@@ -20,6 +20,22 @@ To install CloudBot on *nix (linux, etc), see [here](https://github.com/CloudBot
 
 To install CloudBot on Windows, see [here](https://github.com/CloudBotIRC/CloudBot/wiki/Installing-on-Windows)
 
+### snee install
+```bash
+git clone https://github.com/reddit-tennis-code/reddit-tennis-bot
+
+# optional if you dont have pipenv
+pip3 install pipenv
+
+# local virutalenv to do you work in
+pipenv install
+
+# build docker image
+docker build --rm -t cloudbot:v1 .
+
+docker run -it cloudbot:v1
+```
+
 
 ### Running CloudBot
 
