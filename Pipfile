@@ -1,0 +1,30 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+pylint = "*"
+
+[packages]
+nltk = "*"
+geoip2 = "*"
+cleverwrap = "*"
+future = "*"
+microdata = "*"
+watchdog = "*"
+beautifulsoup4 = "*"
+feedparser = "*"
+requests = "*"
+psutil = "*"
+requests-oauthlib = "*"
+tweepy = "*"
+pythonwhois = "*"
+pytz = "*"
+imgurpython = "*"
+isodate = "*"
+yarl = "*"
+SQLAlchemy = "*"
+
+[requires]
+python_version = "3.7"
