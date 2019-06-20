@@ -19,3 +19,6 @@ pytz
 imgurpython
 isodate
 yarl
+googlemaps==3.0.2
+forecastiopy==0.22
+

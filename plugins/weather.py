@@ -1,13 +1,22 @@
-import requests
+from fractions import Fraction
+from typing import Optional
+
+import googlemaps
+from forecastiopy.ForecastIO import ForecastIO
+from googlemaps.exceptions import ApiError
 from sqlalchemy import Table, Column, PrimaryKeyConstraint, String
 
 from cloudbot import hook
-from cloudbot.util import web, database
+from cloudbot.util import web, database, colors
+
+Api = Optional[googlemaps.Client]
 
 
-class APIError(Exception):
-    pass
+class PluginData:
+    maps_api = None  # type: Api
 
+
+data = PluginData()
 
 # Define database table
 
@@ -19,64 +28,56 @@ table = Table(
     PrimaryKeyConstraint('nick')
 )
 
-# Define some constants
-google_base = 'https://maps.googleapis.com/maps/api/'
-geocode_api = google_base + 'geocode/json'
+location_cache = []
 
-wunder_api = "http://api.wunderground.com/api/{}/forecast/geolookup/conditions/q/{}.json"
+BEARINGS = (
+    'N', 'NNE',
+    'NE', 'ENE',
+    'E', 'ESE',
+    'SE', 'SSE',
+    'S', 'SSW',
+    'SW', 'WSW',
+    'W', 'WNW',
+    'NW', 'NNW',
+)
 
-# Change this to a ccTLD code (eg. uk, nz) to make results more targeted towards that specific country.
-# <https://developers.google.com/maps/documentation/geocoding/#RegionCodes>
-bias = None
+# math constants
+NUM_BEARINGS = len(BEARINGS)
+BEARING_SECTION = 360 / NUM_BEARINGS
+BEARING_RANGE = BEARING_SECTION / 2
 
 
-def check_status(status):
+def bearing_to_card(bearing):
+    if bearing > 360 or bearing < 0:
+        raise ValueError("Invalid wind bearing: {}".format(bearing))
+
+    # Derived from values from http://snowfence.umn.edu/Components/winddirectionanddegreeswithouttable3.htm
+    index = int(NUM_BEARINGS * (((bearing + BEARING_RANGE) % 360) / 360))
+    return BEARINGS[index]
+
+
+def convert_f2c(temp):
     """
-    A little helper function that checks an API error code and returns a nice message.
-    Returns None if no errors found
+    Convert temperature in Fahrenheit to Celsios
     """
-    if status == 'REQUEST_DENIED':
-        return 'The geocode API is off in the Google Developers Console.'
-    elif status == 'ZERO_RESULTS':
-        return 'No results found.'
-    elif status == 'OVER_QUERY_LIMIT':
-        return 'The geocode API quota has run out.'
-    elif status == 'UNKNOWN_ERROR':
-        return 'Unknown Error.'
-    elif status == 'INVALID_REQUEST':
-        return 'Invalid Request.'
-    elif status == 'OK':
-        return None
+    return float((temp - 32) * Fraction(5, 9))
 
 
-def find_location(location):
+def mph_to_kph(mph):
+    return mph * 1.609344
+
+
+def find_location(location, bias=None):
     """
     Takes a location as a string, and returns a dict of data
     :param location: string
+    :param bias: The region to bias answers towards
     :return: dict
     """
-    params = {"address": location, "key": dev_key}
-    if bias:
-        params['region'] = bias
-
-    request = requests.get(geocode_api, params=params)
-    request.raise_for_status()
-
-    json = request.json()
-    error = check_status(json['status'])
-    if error:
-        raise APIError(error)
-
-    return json['results'][0]['geometry']['location']
-
-
-def load_cache(db):
-    global location_cache
-    location_cache = []
-    for row in db.execute(table.select()):
-        nick = row["nick"]
-        location = row["loc"]
-        location_cache.append((nick, location))
+    json = data.maps_api.geocode(location, region=bias)[0]
+    out = json['geometry']['location']
+    out['address'] = json['formatted_address']
+    return out
 
 
 def add_location(nick, location, db):
@@ -93,12 +94,24 @@ def add_location(nick, location, db):
 
 
 @hook.on_start
-def on_start(bot, db):
-    """ Loads API keys """
-    global dev_key, wunder_key
-    dev_key = bot.config.get("api_keys", {}).get("google_dev_key", None)
-    wunder_key = bot.config.get("api_keys", {}).get("wunderground", None)
-    load_cache(db)
+def load_cache(db):
+    new_cache = []
+    for row in db.execute(table.select()):
+        nick = row["nick"]
+        location = row["loc"]
+        new_cache.append((nick, location))
+
+    location_cache.clear()
+    location_cache.extend(new_cache)
+
+
+@hook.on_start
+def create_maps_api(bot):
+    google_key = bot.config.get_api_key("google_dev_key")
+    if google_key:
+        data.maps_api = googlemaps.Client(google_key)
+    else:
+        data.maps_api = None
 
 
 def get_location(nick):
@@ -106,97 +119,174 @@ def get_location(nick):
     location = [row[1] for row in location_cache if nick.lower() == row[0]]
     if not location:
         return
-    else:
-        location = location[0]
+
+    location = location[0]
     return location
 
 
-@hook.command("weather", "we", autohelp=False)
-def weather(text, reply, db, nick, notice_doc):
-    """<location> - Gets weather data for <location>."""
-    if not wunder_key:
-        return "This command requires a Weather Underground API key."
-    if not dev_key:
-        return "This command requires a Google Developers Console API key."
+def check_and_parse(event, db):
+    """
+    Check for the API keys and parse the location from user input
+    """
+    ds_key = event.bot.config.get_api_key("darksky")
+    if not ds_key:
+        return None, "This command requires a DarkSky API key."
+
+    if not data.maps_api:
+        return None, "This command requires a Google Developers Console API key."
 
     # If no input try the db
-    if not text:
-        location = get_location(nick)
+    if not event.text:
+        location = get_location(event.nick)
         if not location:
-            notice_doc()
-            return
+            event.notice_doc()
+            return None, None
     else:
-        location = text
+        location = event.text
+        add_location(event.nick, location, db)
 
+    # Change this in the config to a ccTLD code (eg. uk, nz)
+    # to make results more targeted towards that specific country.
+    # <https://developers.google.com/maps/documentation/geocoding/#RegionCodes>
+    bias = event.bot.config.get('location_bias_cc')
     # use find_location to get location data from the user input
     try:
-        location_data = find_location(location)
-    except APIError as e:
-        reply(str(e))
+        location_data = find_location(location, bias=bias)
+    except ApiError:
+        event.reply("API Error occurred.")
         raise
 
-    formatted_location = "{lat},{lng}".format(**location_data)
+    fio = ForecastIO(
+        ds_key, units=ForecastIO.UNITS_US,
+        latitude=location_data['lat'],
+        longitude=location_data['lng']
+    )
 
-    url = wunder_api.format(wunder_key, formatted_location)
-    request = requests.get(url)
-    request.raise_for_status()
+    return (location_data, fio), None
 
-    response = request.json()
 
-    error = response['response'].get('error')
-    if error:
-        return "{}".format(error['description'])
+@hook.command("weather", "we", autohelp=False)
+def weather(reply, db, triggered_prefix, event):
+    """<location> - Gets weather data for <location>."""
+    res, err = check_and_parse(event, db)
+    if not res:
+        return err
 
-    forecast = response["forecast"]["simpleforecast"]["forecastday"]
-    if not forecast:
-        return "Unable to retrieve forecast data."
+    location_data, fio = res
 
-    forecast_today = forecast[0]
-    forecast_tomorrow = forecast[1]
+    daily_conditions = fio.get_daily()['data']
+    current = fio.get_currently()
+    today = daily_conditions[0]
+    wind_speed = current['windSpeed']
+    today_high = today['temperatureHigh']
+    today_low = today['temperatureLow']
+    current.update(
+        name='Current',
+        wind_direction=bearing_to_card(current['windBearing']),
+        wind_speed_mph=wind_speed,
+        wind_speed_kph=mph_to_kph(wind_speed),
+        summary=current['summary'].rstrip('.'),
+        temp_f=current['temperature'],
+        temp_c=convert_f2c(current['temperature']),
+        temp_high_f=today_high,
+        temp_high_c=convert_f2c(today_high),
+        temp_low_f=today_low,
+        temp_low_c=convert_f2c(today_low),
+    )
 
-    forecast_today_high = forecast_today['high']
-    forecast_today_low = forecast_today['low']
-    forecast_tomorrow_high = forecast_tomorrow['high']
-    forecast_tomorrow_low = forecast_tomorrow['low']
+    parts = [
+        ('Current', "{summary}, {temp_f:.0f}F/{temp_c:.0f}C"),
+        ('High', "{temp_high_f:.0f}F/{temp_high_c:.0f}C"),
+        ('Low', "{temp_low_f:.0f}F/{temp_low_c:.0f}C"),
+        ('Humidity', "{humidity:.0%}"),
+        ('Wind', "{wind_speed_mph:.0f}MPH/{wind_speed_kph:.0f}KPH {wind_direction}"),
+    ]
 
-    current_observation = response['current_observation']
+    current_str = '; '.join(
+        colors.parse('$(b){}$(b): {}$(clear)'.format(part[0], part[1]))
+        for part in parts
+    )
 
-    # put all the stuff we want to use in a dictionary for easy formatting of the output
-    weather_data = {
-        "place": current_observation['display_location']['full'],
-        "conditions": current_observation['weather'],
-        "temp_f": current_observation['temp_f'],
-        "temp_c": current_observation['temp_c'],
-        "humidity": current_observation['relative_humidity'],
-        "wind_kph": current_observation['wind_kph'],
-        "wind_mph": current_observation['wind_mph'],
-        "wind_direction": current_observation['wind_dir'],
-        "today_conditions": forecast_today['conditions'],
-        "today_high_f": forecast_today_high['fahrenheit'],
-        "today_high_c": forecast_today_high['celsius'],
-        "today_low_f": forecast_today_low['fahrenheit'],
-        "today_low_c": forecast_today_low['celsius'],
-        "tomorrow_conditions": forecast_tomorrow['conditions'],
-        "tomorrow_high_f": forecast_tomorrow_high['fahrenheit'],
-        "tomorrow_high_c": forecast_tomorrow_high['celsius'],
-        "tomorrow_low_f": forecast_tomorrow_low['fahrenheit'],
-        "tomorrow_low_c": forecast_tomorrow_low['celsius'],
-    }
+    url = web.try_shorten(
+        'https://darksky.net/forecast/{lat:.3f},{lng:.3f}'.format_map(
+            location_data
+        )
+    )
 
-    # Get the more accurate URL if available, if not, get the generic one.
-    ob_url = current_observation['ob_url']
-    if "?query=," in ob_url:
-        url = current_observation['forecast_url']
-    else:
-        url = ob_url
+    reply(
+        colors.parse(
+            "{current_str} -- "
+            "{place} - "
+            "$(ul){url}$(clear) "
+            "($(i)To get a forecast, use {cmd_prefix}fc$(i))"
+        ).format(
+            place=location_data['address'],
+            current_str=current_str.format_map(current),
+            url=url,
+            cmd_prefix=triggered_prefix,
+        )
+    )
 
-    weather_data['url'] = web.try_shorten(url)
 
-    reply("{place} - \x02Current:\x02 {conditions}, {temp_f}F/{temp_c}C, {humidity}, "
-          "Wind: {wind_mph}MPH/{wind_kph}KPH {wind_direction}, \x02Today:\x02 {today_conditions}, "
-          "High: {today_high_f}F/{today_high_c}C, Low: {today_low_f}F/{today_low_c}C. "
-          "\x02Tomorrow:\x02 {tomorrow_conditions}, High: {tomorrow_high_f}F/{tomorrow_high_c}C, "
-          "Low: {tomorrow_low_f}F/{tomorrow_low_c}C - {url}".format_map(weather_data))
+@hook.command("forecast", "fc", autohelp=False)
+def forecast(reply, db, event):
+    """<location> - Gets forecast data for <location>."""
+    res, err = check_and_parse(event, db)
+    if not res:
+        return err
 
-    if text:
-        add_location(nick, location, db)
+    location_data, fio = res
+
+    daily_conditions = fio.get_daily()['data']
+    today, tomorrow, *three_days = daily_conditions[:5]
+
+    today['name'] = 'Today'
+    tomorrow['name'] = 'Tomorrow'
+
+    for day_fc in (today, tomorrow):
+        wind_speed = day_fc['windSpeed']
+        day_fc.update(
+            wind_direction=bearing_to_card(day_fc['windBearing']),
+            wind_speed_mph=wind_speed,
+            wind_speed_kph=mph_to_kph(wind_speed),
+            summary=day_fc['summary'].rstrip('.'),
+        )
+
+    for fc_data in (today, tomorrow, *three_days):
+        high = fc_data['temperatureHigh']
+        low = fc_data['temperatureLow']
+        fc_data.update(
+            temp_high_f=high,
+            temp_high_c=convert_f2c(high),
+            temp_low_f=low,
+            temp_low_c=convert_f2c(low),
+        )
+
+    parts = [
+        ('High', "{temp_high_f:.0f}F/{temp_high_c:.0f}C"),
+        ('Low', "{temp_low_f:.0f}F/{temp_low_c:.0f}C"),
+        ('Humidity', "{humidity:.0%}"),
+        ('Wind', "{wind_speed_mph:.0f}MPH/{wind_speed_kph:.0f}KPH {wind_direction}"),
+    ]
+
+    day_str = colors.parse("$(b){name}$(b): {summary}; ") + '; '.join(
+        '{}: {}'.format(part[0], part[1])
+        for part in parts
+    )
+
+    url = web.try_shorten(
+        'https://darksky.net/forecast/{lat:.3f},{lng:.3f}'.format_map(
+            location_data
+        )
+    )
+
+    out_format = "{today_str} | {tomorrow_str} -- {place} - $(ul){url}$(clear)"
+
+    reply(
+        colors.parse(out_format).format(
+            today_str=day_str.format_map(today),
+            tomorrow_str=day_str.format_map(tomorrow),
+            place=location_data['address'],
+            url=url
+        )
+    )
