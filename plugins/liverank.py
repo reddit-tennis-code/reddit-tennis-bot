@@ -53,7 +53,10 @@ def liverank(text,reply):
                             rank_flux = prev_rank
                         else:
                             rank_flux = f'{red}{prev_rank}{colorend}'
-                        player = row.xpath('td[4]/text()')[0].encode('raw_unicode_escape')
+                        try:
+                            player = row.xpath('td[4]/text()')[0].encode('raw_unicode_escape')
+                        except IndexError:
+                            player = row.xpath('td[4]/span/text()')[0].encode('raw_unicode_escape')
                         points = row.xpath('td[7]/text()')[0]
                         tournament = row.xpath('td[10]/text()')[0].encode('raw_unicode_escape')
                         max_points = row.xpath('td[14]/text()')[0]
@@ -71,7 +74,10 @@ def liverank(text,reply):
                 try:
                     check_player = row.xpath('td[4]/text()')[0].encode('raw_unicode_escape').decode('utf-8')
                 except IndexError:
-                    continue
+                    try:
+                        check_player = row.xpath('td[4]/span/text()')[0].encode('raw_unicode_escape').decode('utf-8')
+                    except IndexError:
+                        continue
                 else:
                     nfkd_form = unicodedata.normalize('NFKD', check_player)
                     player_check = ''.join([c for c in nfkd_form if not unicodedata.combining(c)])
@@ -90,7 +96,10 @@ def liverank(text,reply):
                             rank_flux = prev_rank
                         else:
                             rank_flux = f'{red}{prev_rank}{colorend}'
-                        player = row.xpath('td[4]/text()')[0].encode('raw_unicode_escape')
+                        try:
+                            player = row.xpath('td[4]/text()')[0].encode('raw_unicode_escape')
+                        except IndexError:
+                            player = row.xpath('td[4]/span/text()')[0].encode('raw_unicode_escape')
                         points = row.xpath('td[7]/text()')[0]
                         tournament = row.xpath('td[10]/text()')[0].encode('raw_unicode_escape')
                         max_points = row.xpath('td[14]/text()')[0]
@@ -120,7 +129,10 @@ def liverank(text,reply):
                 rank_flux = prev_rank
             else:
                 rank_flux = f'{red}{prev_rank}{colorend}'
-            player = rank_rows[i].xpath('td[4]/text()')[0].encode('raw_unicode_escape')
+            try:
+                player = rank_rows[i].xpath('td[4]/text()')[0].encode('raw_unicode_escape')
+            except IndexError:
+                player = rank_rows[i].xpath('td[4]/span/text()')[0].encode('raw_unicode_escape')
             top_ten = top_ten + rank + '. ' + player.decode('utf-8') + ' (' + rank_flux + '), '
         reply(top_ten[0:-2])
         return

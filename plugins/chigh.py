@@ -12,7 +12,8 @@ def chigh(text,reply):
         reply('Format: .chigh wta evert')
 
     nick_dict = {'shoulders':'Maria%20Sakkari','muguruza':'Garbine%20Muguruza','azarenka':'Victoria%20Azarenka', \
-        'dave':'Novak%20Djokovic','delpo':'delpo','evert':r'Chris%20Evert','bjk':r'Billie%20Jean%20King'}
+        'dave':'Novak%20Djokovic','delpo':'delpo','evert':r'Chris%20Evert','bjk':r'Billie%20Jean%20King', \
+            'faa':r'Felix%20Auger%20Aliassime'}
 
     rq = rq.strip()
     rq = rq.split(' ')
