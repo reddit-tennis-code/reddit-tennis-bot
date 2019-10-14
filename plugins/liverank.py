@@ -188,7 +188,6 @@ def liverank(text,reply):
                     max_points = mp_list[rank-1]
                     tournament = tourn_list[rank-1]
                     reply('#' + str(rank) + '. ' + player.decode('utf-8') + ' (' + rank_flux + ') ' + points + 'pts' + '. Current tournament: ' + tournament.decode('utf-8') + ', max points possible = ' + max_points + '\n')
-                    break
                     return
             for row in rank_rows[62:]:
                 try:
@@ -236,7 +235,6 @@ def liverank(text,reply):
                     if str(max_points) == '-':
                         max_points = points
                     reply('#' + rank + '. ' + player.decode('utf-8') + ' (' + rank_flux + ') ' + points + 'pts' + '. Current tournament: ' + tournament.decode('utf-8') + ', max points possible = ' + max_points + '\n')
-                    break
                     return
         else:
             reply('Could not find ranking.')
