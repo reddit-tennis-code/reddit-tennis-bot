@@ -253,7 +253,7 @@ def liverank(text,reply):
     colorend = '\x03'
 
     try:
-        if text[2].isdigit():
+        if text[1].isdigit():
             num = int(text[2])
             if num >= 11 and num < 51:
                 num = num+1
@@ -292,7 +292,7 @@ def liverank(text,reply):
                 max_points = points
             reply(rank + '. ' + player.decode('utf-8') + ' (' + rank_flux + ') ' + points + '. Current tournament: ' + tournament.decode('utf-8') + ', max points possible = ' + max_points + '\n')
 
-        elif text[2].isalpha():
+        elif text[1].isalpha():
             intxt = ' '.join(text[2:]).upper()
             input_form = unicodedata.normalize('NFKD', intxt)
             new_input = ''.join([c for c in input_form if not unicodedata.combining(c)])
