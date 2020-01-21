@@ -11,17 +11,17 @@ def liverank(text,reply):
     text = text.strip()
     text = text.split(' ')
 
-    # try:
-    #     if text[0].lower() == 'atp':
-    #         page = requests.get('https://live-tennis.eu/en/atp-live-ranking')
-    #     elif text[0].lower() == 'wta':
-    #         page = requests.get('https://live-tennis.eu/en/wta-live-ranking')
-    #     else:
-    #         reply('Please enter ATP or WTA, optionally followed by name or ranking.')
-    #         return
-    # except IndexError:
-    #     reply('Please enter ATP or WTA, optionally followed by name or ranking.')
-    #     return
+    try:
+        if text[0].lower() == 'atp':
+            page = requests.get('https://live-tennis.eu/en/atp-live-ranking')
+        elif text[0].lower() == 'wta':
+            page = requests.get('https://live-tennis.eu/en/wta-live-ranking')
+        else:
+            reply('Please enter ATP or WTA, optionally followed by name or ranking.')
+            return
+    except IndexError:
+        reply('Please enter ATP or WTA, optionally followed by name or ranking.')
+        return
     # tree = html.fromstring(page.text)
     # rank_rows = tree.xpath('//table[@id="u868"]/tbody/tr')
     # green = '\x0309'
