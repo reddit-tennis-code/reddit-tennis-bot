@@ -2,7 +2,7 @@ import requests
 from cloudbot import hook
 from lxml import html
 import unicodedata
-import
+import math
 
 @hook.command("rank")
 def rank(text,reply):
@@ -30,7 +30,7 @@ def rank(text,reply):
 
     if len(text) > 1:
         if text[1].isdigit():
-            num = int(text[2])
+            num = int(text[1])
             if num >= 11 and num < 51:
                 num = num+1
             elif num >= 51 and num < 250:
