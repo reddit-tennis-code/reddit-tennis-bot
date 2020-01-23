@@ -35,7 +35,7 @@ def rank(text,reply):
                 num = num+1
             elif num >= 51 and num < 250:
                 num = num+(math.floor(num/50)+1)
-            else:
+            elif num >= 250:
                 num = num+5
             row = rank_rows[num-1]
             try:
