@@ -3,6 +3,14 @@ from lxml import html
 import datetime
 from cloudbot import hook
 
+headers = {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Accept-Language': 'en-US,en;q=0.5',
+    'Cache-Control': 'max-age=0',
+    'Connection': 'keep-alive',
+    'referer': 'https://www.google.com',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:82.0) Gecko/20100101 Firefox/82.0'}
+
 
 @hook.command('chigh')
 def chigh(text,reply):
@@ -17,7 +25,6 @@ def chigh(text,reply):
 
     rq = rq.strip()
     rq = rq.split(' ')
-    
 
     if rq[0] == 'atp':
         num = '2'
@@ -34,17 +41,18 @@ def chigh(text,reply):
     if search_text in nick_dict:
         name_lookup = nick_dict[search_text]
     else:
-        page = requests.get(f'http://www.tennisexplorer.com/list-players/?search-text-pl={search_text}')
+        page = requests.get(f'http://www.tennisexplorer.com/list-players/?search-text-pl={search_text}',headers=headers)
         tree = html.fromstring(page.text)
         try:
             p1text = tree.xpath(f'//table[@class="result"]/tbody/tr[1]/td[{num}]/a/text()')[0].split(',')
         except IndexError:
             reply('Could not find player.')
         name_lookup = '%20'.join([p1text[1][1:].replace(' ','_'),p1text[0].replace(' ','_')])
+        url_name = '-'.join([p1text[1][1:].replace(' ','_'),p1text[0].replace(' ','_')])
 
     if num == '2':
         url = f'https://www.atptour.com/en/-/ajax/playersearch/PlayerUrlSearch?searchTerm={name_lookup}'
-        player_json = requests.get(url).json()
+        player_json = requests.get(url,headers=headers).json()
         if len(player_json['items']) > 1:
             reply('Multiple players returned. Please refine your search.')
             return
@@ -55,7 +63,7 @@ def chigh(text,reply):
         player_url = f'https://www.atptour.com{player_json["items"][0]["Value"]}'
         player_name = player_json['items'][0]['Key']
 
-        ppage = requests.get(player_url)
+        ppage = requests.get(player_url,headers=headers)
         ptree = html.fromstring(ppage.text)
         rank = ptree.xpath('//table[@id="playersStatsTable"]/tbody/tr[2]/td[2]/div[1]')[0].get('data-singles').strip()
         date_raw = ptree.xpath('//table[@id="playersStatsTable"]/tbody/tr[2]/td[2]/div[2]')[0].get('data-singles-label').strip().split(' ')[-1]
@@ -64,12 +72,12 @@ def chigh(text,reply):
         reply(f'{player_name}: Singles Career High = #{rank} (first reached on {date_obj.strftime("%B")} {date_obj.strftime("%d")}, {date_obj.strftime("%Y")})')
     else:
         url = 'https://api.wtatennis.com/tennis/players/?page=0&pageSize=20&name={}&nationality='.format(name_lookup)
-        player_json = requests.get(url).json()
+        player_json = requests.get(url,headers=headers).json()
 
         player_url = 'https://www.wtatennis.com/players/{}/{}/rankings-history'.format(str(player_json['content'][0]['id']),url_name)
         player_name = player_json['content'][0]['fullName']
 
-        ppage = requests.get(player_url)
+        ppage = requests.get(player_url,headers=headers)
         ptree = html.fromstring(ppage.text)
         check_rank = ptree.xpath('//div[@class="rankings-overview-item"]')
         if len(check_rank) == 4:
