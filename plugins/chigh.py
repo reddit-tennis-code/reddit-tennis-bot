@@ -62,23 +62,22 @@ def chigh(text,reply):
 
         reply(f'{player_name}: Singles Career High = #{rank} (first reached on {date_obj.strftime("%B")} {date_obj.strftime("%d")}, {date_obj.strftime("%Y")})')
     else:
-        url = f'https://www.wtatennis.com/search/players/{name_lookup}'
-        search_tree = html.fromstring(requests.get(url).text)
-        player_div = search_tree.xpath('//div[@id="block-luxbox-search-luxbox-search-block-players"]/div[1]/div')
-        if len(player_div) > 1:
-            reply('Multiple players returned. Please refine your search.')
-            return
-        elif len(player_div) == 0:
-            reply('No players found.')
-            return
-        
-        link_div = player_div[0].xpath('div[1]/div[2]/h2/a/@href')[0]
-        link_div = f'{link_div}#ranking'
-        player_name = player_div[0].xpath('div[1]/div[2]/h2/a/text()')[0].strip()
-        ptree = html.fromstring(requests.get(link_div).text)
+        url = 'https://api.wtatennis.com/tennis/players/?page=0&pageSize=20&name={}&nationality='.format(name_lookup)
+        player_json = requests.get(url).json()
 
-        rank = ptree.xpath('//div[@class="rankings-container career-high"]/div[1]/p[1]/text()')[0].strip()
-        date_raw = ptree.xpath('//div[@class="rankings-container career-high"]/div[1]/p[2]/text()')[0].strip()
-        date_obj = datetime.datetime.strptime(date_raw,'%Y/%m/%d')
+        player_url = 'https://www.wtatennis.com/players/{}/{}/rankings-history'.format(str(player_json['content'][0]['id']),url_name)
+        player_name = player_json['content'][0]['fullName']
+
+        ppage = requests.get(player_url)
+        ptree = html.fromstring(ppage.text)
+        check_rank = ptree.xpath('//div[@class="rankings-overview-item"]')
+        if len(check_rank) == 4:
+            rank = ptree.xpath('//div[@class="rankings-overview-item"][2]/div[3]/text()')[0].strip()
+            date_raw = ptree.xpath('//div[@class="rankings-overview-item"][2]/div[4]/text()')[0].strip()
+            date_obj = datetime.datetime.strptime(date_raw,'%b %d, %Y')
+        else:
+            rank = ptree.xpath('//div[@class="rankings-overview-item"]/div[3]/text()')[0].strip()
+            date_raw = ptree.xpath('//div[@class="rankings-overview-item"]/div[4]/text()')[0].strip()
+            date_obj = datetime.datetime.strptime(date_raw,'%b %d, %Y')
 
         reply(f'{player_name}: Singles Career High = #{rank} (first reached on {date_obj.strftime("%B")} {date_obj.strftime("%d")}, {date_obj.strftime("%Y")})')
