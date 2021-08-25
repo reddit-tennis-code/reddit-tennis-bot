@@ -17,6 +17,7 @@ def chigh(text,reply):
 
     rq = rq.strip()
     rq = rq.split(' ')
+    
 
     if rq[0] == 'atp':
         num = '2'
