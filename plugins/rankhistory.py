@@ -89,38 +89,19 @@ def rankhistory(text,reply):
                 reply(f'{pname}: #{rank} on {date_obj.strftime("%B")} {date_obj.strftime("%d")}, {date_obj.strftime("%Y")}')
                 return
     else:
-        url = f'https://www.wtatennis.com/search/players/{name_lookup}'
-        search_tree = html.fromstring(requests.get(url).text)
-        player_div = search_tree.xpath('//div[@id="block-luxbox-search-luxbox-search-block-players"]/div[1]/div')
-        if len(player_div) > 1:
-            reply('Multiple players returned. Please refine your search.')
-            return
-        elif len(player_div) == 0:
-            reply('No players found.')
-            return
-        
-        link_div = player_div[0].xpath('div[1]/div[2]/h2/a/@href')[0]
-        pname = player_div[0].xpath('div[1]/div[2]/h2/a/text()')[0].strip()
-        split_link = link_div.split('/')
-        monday1 = date_obj - datetime.timedelta(days=date_obj.weekday())
-        monday2 = (monday1 - datetime.timedelta(days=1)) - datetime.timedelta(days=(monday1 - datetime.timedelta(days=1)).weekday())
-        datestr1 = f'{monday1.strftime("%m")}-{monday1.strftime("%d")}-{monday1.strftime("%Y")}'
-        datestr2 = f'{monday2.strftime("%m")}-{monday2.strftime("%d")}-{monday2.strftime("%Y")}'
-        hist_url = f'https://www.wtatennis.com/player/{split_link[-3]}/print/rankings-history/{monday1.strftime("%Y")}'
+        url = 'https://api.wtatennis.com/tennis/players/?page=0&pageSize=20&name={}&nationality='.format(name_lookup)
+        player_json = requests.get(url).json()
 
-        page = requests.get(hist_url)
-        tree = html.fromstring(page.text)
-        rank_rows = tree.xpath('//table[@id="weekly-rankings-table"]/tbody/tr')
+        player_url = 'https://api.wtatennis.com/tennis/players/{}/ranking?from={}-01-01&to={}-12-31&aggregation-method=weekly'.format(str(player_json['content'][0]['id']),date[0:4],date[0:4])
+        pname = player_json['content'][0]['fullName']
 
-        for row in rank_rows:
-            site_date = row.xpath('td[1]/text()')[0].strip()
-            if site_date == datestr1:
-                rank = row.xpath('td[2]/text()')[0].strip()
-                reply(f'{pname}: #{rank} on {date_obj.strftime("%B")} {date_obj.strftime("%d")}, {date_obj.strftime("%Y")}')
-                return
-            elif site_date == datestr2:
-                rank = row.xpath('td[2]/text()')[0].strip()
-                reply(f'{pname}: #{rank} on {date_obj.strftime("%B")} {date_obj.strftime("%d")}, {date_obj.strftime("%Y")}')
+        rank_json = requests.get(player_url).json()
+        for wranking in rank_json['weeklyRankings']:
+            week_rank = wranking['rankedAt'][0:10]
+            rank_date = datetime.datetime.strptime(week_rank,'%Y-%m-%d')
+            if date_obj > rank_date:
+                rank = str(wranking['singlesRanking'])
+                reply('{}: #{} on {} {}, {}'.format(pname,rank,date_obj.strftime("%B"),date_obj.strftime("%d"),date_obj.strftime("%Y")))
                 return
 
     reply(f'Valid date, but no ranking found for {pname} for that week.')
