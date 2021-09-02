@@ -3,6 +3,14 @@ from lxml import html
 
 from cloudbot import hook
 
+headers = {'GET': '/posts/35306761/ivc/15ce?_=1630535997785 HTTP/1.1',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0',
+        'Accept': '*/*',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive',
+        'Cookie': 'prov=a10aab95-0270-115d-b275-c5d684dde609'}
+
 
 @hook.command('h2hw')
 def h2hw(text):
@@ -42,34 +50,61 @@ def h2hw(text):
         p2 = '_'.join([p2text[1][1:].replace(' ','_'),p2text[0].replace(' ','_')])
         disp2 = ' '.join([p2text[1][1:],p2text[0]])
 
-    page = requests.get(f'http://www.stevegtennis.com/head-to-head/women/{p1}/{p2}/')
-    tree = html.fromstring(page.text)
+    url1 = 'https://api.wtatennis.com/tennis/players/?page=0&pageSize=20&name={}&nationality='.format(name_lookup1)
+    player_json1 = requests.get(url1).json()
+    if player_json1['pageInfo']['numEntries'] > 1:
+        reply('Multiple players returned. Please refine your search.')
+        return
+    elif player_json1['pageInfo']['numEntries'] == 0:
+        reply('No players found.')
+        return
+    player1_id = str(player_json1['content'][0]['id'])
+
+    url2 = 'https://api.wtatennis.com/tennis/players/?page=0&pageSize=20&name={}&nationality='.format(name_lookup2)
+    player_json2 = requests.get(url2).json()
+    if player_json2['pageInfo']['numEntries'] > 1:
+        reply('Multiple players returned. Please refine your search.')
+        return
+    elif player_json2['pageInfo']['numEntries'] == 0:
+        reply('No players found.')
+        return
+    player2_id =str(player_json2['content'][0]['id'])
+
+    h2h_url = 'https://api.wtatennis.com/tennis/players/{}/headtohead/{}?sort=desc'.format(player1_id,player2_id)
+    h2h_json = requests.get(h2h_url,headers=headers).json()
+
+    disp1 = '{} {}'.format(h2h_json['bio'][0]['firstname'],h2h_json['bio'][0]['lastname'])
+    disp2 = '{} {}'.format(h2h_json['bio'][1]['firstname'],h2h_json['bio'][1]['lastname'])
 
     try:
-        w1 = tree.xpath('//table[@id="player_info"]/tr[1]/td[1]/div/text()')[0]
-        w2 = tree.xpath('//table[@id="player_info"]/tr[1]/td[3]/div/text()')[0]
-    except IndexError:
-        return('stevegtennis error')
-    try:
-        lscore = tree.xpath('//tr[@class="row1"]/td[7]/text()')[0].replace(' ',', ')
-        if lscore == 'Upcoming':
-            try:
-                lyear = tree.xpath('//tr[@class="row2"]/td[1]/text()')[0]
-                ltourney = tree.xpath('//tr[@class="row2"]/td[2]/a/text()')[0]
-                lround = tree.xpath('//tr[@class="row2"]/td[3]/text()')[0]
-                lwinner = tree.xpath('//tr[@class="row2"]/td[5]/a/text()')[0]
-                lloser = tree.xpath('//tr[@class="row2"]/td[6]/a/text()')[0]
-                lscore = tree.xpath('//tr[@class="row2"]/td[7]/text()')[0].replace(' ',', ')
-                return(f'{disp1} {w1} - {w2} {disp2}. Last: {lyear} {ltourney} {lround} {lwinner} d. {lloser} {lscore}')
-            except IndexError:
-                return(f'{disp1} {w1} - {w2} {disp2}')
+        w1 = str(h2h_json['headToHeadSummary'][0]['wins'])
+        w2 = str(h2h_json['headToHeadSummary'][0]['losses'])
+        ltourney = h2h_json['matchEncounterResults'][0]['TournamentName'].lower().capitalize()
+        lyear = h2h_json['matchEncounterResults'][0]['StartDate'][0:4]
+        lround = round_dict[h2h_json['matchEncounterResults'][0]['round_name']]
+        lscore = h2h_json['matchEncounterResults'][0]['scores']
+        reason_code = h2h_json['matchEncounterResults'][0]['reason_code']
+        if h2h_json['matchEncounterResults'][0]['winner'] == 1:
+            lwinner = disp1
+            lloser = disp2
         else:
-            lyear = tree.xpath('//tr[@class="row1"]/td[1]/text()')[0]
-            ltourney = tree.xpath('//tr[@class="row1"]/td[2]/a/text()')[0]
-            lround = tree.xpath('//tr[@class="row1"]/td[3]/text()')[0]
-            lwinner = tree.xpath('//tr[@class="row1"]/td[5]/a/text()')[0]
-            lloser = tree.xpath('//tr[@class="row1"]/td[6]/a/text()')[0]
-            lscore = tree.xpath('//tr[@class="row1"]/td[7]/text()')[0].replace(' ',', ')
-            return(f'{disp1} {w1} - {w2} {disp2}. Last: {lyear} {ltourney} {lround} {lwinner} d. {lloser} {lscore}')
+            lwinner = disp2
+            lloser = disp1
+            
+        if lscore == '':
+            lscore_str = 'w/o'
+        else:
+            lscore_str = ', '.join(lscore.split('  '))
+        
+        if reason_code == 'R':
+            reason_str = 'ret.'
+        else:
+            reason_str = ''
+
+        result_string = '{} {} - {} {}. Last: {} {} {}, {} d. {} {} {}'.format(disp1,w1,w2,disp2,lyear,ltourney,lround,lwinner,lloser,lscore_str,reason_str)
     except IndexError:
-        return(f'{disp1} {w1} - {w2} {disp2}')
+        w1 = '0'
+        w2 = '0'
+        result_string = '{} {} - {} {}'.format(disp1,w1,w2,disp2)
+
+    reply(result_string)
