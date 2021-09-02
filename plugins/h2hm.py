@@ -3,6 +3,14 @@ from lxml import html
 
 from cloudbot import hook
 
+headers = {'GET': '/posts/35306761/ivc/15ce?_=1630535997785 HTTP/1.1',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0',
+        'Accept': '*/*',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive',
+        'Cookie': 'prov=a10aab95-0270-115d-b275-c5d684dde609'}
+
 
 @hook.command('h2hm')
 def h2hm(text):
@@ -43,34 +51,71 @@ def h2hm(text):
         p2 = '_'.join([p2text[1][1:].replace(' ','_'),p2text[0].replace(' ','_')])
         disp2 = ' '.join([p2text[1][1:],p2text[0]])
 
-    page = requests.get(f'http://www.stevegtennis.com/head-to-head/men/{p1}/{p2}/')
-    tree = html.fromstring(page.text)
+    url1 = 'https://www.atptour.com/en/-/ajax/playersearch/PlayerUrlSearch?searchTerm={}'.format(name_lookup1)
+    player_json1 = requests.get(url1).json()
+    if len(player_json1['items']) > 1:
+        reply('Multiple players returned. Please refine your search.')
+        return
+    elif len(player_json1['items']) == 0:
+        reply('No players found.')
+        return
+    player1_id = player_json1['items'][0]['Value'].split('/')[-2]
+
+    url2 = 'https://www.atptour.com/en/-/ajax/playersearch/PlayerUrlSearch?searchTerm={}'.format(name_lookup2)
+    player_json2 = requests.get(url2).json()
+    if len(player_json2['items']) > 1:
+        reply('Multiple players returned. Please refine your search.')
+        return
+    elif len(player_json2['items']) == 0:
+        reply('No players found.')
+        return
+    player2_id = player_json2['items'][0]['Value'].split('/')[-2]
+
+    h2h_url = 'https://www.atptour.com/en/players/atp-head-2-head/{}-vs-{}/{}/{}'.format(url_name1,url_name2,player1_id,player2_id)
+    h2h_page = requests.get(h2h_url,headers=headers)
+    h2h_tree = html.fromstring(h2h_page.text)
+    h2h_json = json.loads(h2h_tree.xpath('//script[contains(., "playerLeft")]/text()')[0])
+
+    disp1 = '{} {}'.format(h2h_json['playerLeft']['firstName'],h2h_json['playerLeft']['lastName'])
+    w1 = h2h_json['playerLeft']['winCount']
+
+    disp2 = '{} {}'.format(h2h_json['playerRight']['firstName'],h2h_json['playerRight']['lastName'])
+    w2 = h2h_json['playerRight']['winCount']
 
     try:
-        w1 = tree.xpath('//table[@id="player_info"]/tr[1]/td[1]/div/text()')[0]
-        w2 = tree.xpath('//table[@id="player_info"]/tr[1]/td[3]/div/text()')[0]
-    except IndexError:
-        return('stevegtennis error')
-    try:
-        lscore = tree.xpath('//tr[@class="row1"]/td[7]/text()')[0].replace(' ',', ')
-        if lscore == 'Upcoming':
-            try:
-                lyear = tree.xpath('//tr[@class="row2"]/td[1]/text()')[0]
-                ltourney = tree.xpath('//tr[@class="row2"]/td[2]/a/text()')[0]
-                lround = tree.xpath('//tr[@class="row2"]/td[3]/text()')[0]
-                lwinner = tree.xpath('//tr[@class="row2"]/td[5]/a/text()')[0]
-                lloser = tree.xpath('//tr[@class="row2"]/td[6]/a/text()')[0]
-                lscore = tree.xpath('//tr[@class="row2"]/td[7]/text()')[0].replace(' ',', ')
-                return(f'{disp1} {w1} - {w2} {disp2}. Last: {lyear} {ltourney} {lround} {lwinner} d. {lloser} {lscore}')
-            except IndexError:
-                return(f'{disp1} {w1} - {w2} {disp2}')
+        ltourney = h2h_json['Tournaments'][0]['TournamentName']
+        lyear = h2h_json['Tournaments'][0]['EventYear']
+        lround = h2h_json['Tournaments'][0]['MatchResults'][0]['Round']['LongName']
+        sets1 = h2h_json['Tournaments'][0]['MatchResults'][0]['PlayerTeam']['Sets']
+        sets2 = h2h_json['Tournaments'][0]['MatchResults'][0]['OpponentTeam']['Sets']
+        reason = h2h_json['Tournaments'][0]['MatchResults'][0]['Reason']
+        lscore = []
+        if h2h_json['Tournaments'][0]['MatchResults'][0]['Winner'][0] == h2h_json['playerLeft']['lastName'][0]:
+            lwinner = disp1
+            lloser = disp2
+            for i in range(len(sets1)):
+                lscore.append('{}-{}'.format(sets1[i]['SetScore'],sets2[i]['SetScore']))
+
         else:
-            lyear = tree.xpath('//tr[@class="row1"]/td[1]/text()')[0]
-            ltourney = tree.xpath('//tr[@class="row1"]/td[2]/a/text()')[0]
-            lround = tree.xpath('//tr[@class="row1"]/td[3]/text()')[0]
-            lwinner = tree.xpath('//tr[@class="row1"]/td[5]/a/text()')[0]
-            lloser = tree.xpath('//tr[@class="row1"]/td[6]/a/text()')[0]
-            lscore = tree.xpath('//tr[@class="row1"]/td[7]/text()')[0].replace(' ',', ')
-            return(f'{disp1} {w1} - {w2} {disp2}. Last: {lyear} {ltourney} {lround} {lwinner} d. {lloser} {lscore}')
+            lwinner = disp2
+            lloser = disp1
+            for i in range(len(sets1)):
+                lscore.append('{}-{}'.format(sets2[i]['SetScore'],sets1[i]['SetScore']))
+            
+        lscore_str = ', '.join(lscore)
+        if reason:
+            if reason == "RET":
+                reason_str = '{}.'.format(reason.lower())
+            else:
+                reason_str = '{}'.format(reason.lower())
+        else:
+            reason_str = '' 
+
+        if lscore_str == '':
+            result_string = '{} {} - {} {}. Last: {} {} {}, {} d. {}{} {}'.format(disp1,w1,w2,disp2,lyear,ltourney,lround,lwinner,lloser,lscore_str,reason_str)
+        else:
+            result_string = '{} {} - {} {}. Last: {} {} {}, {} d. {} {} {}'.format(disp1,w1,w2,disp2,lyear,ltourney,lround,lwinner,lloser,lscore_str,reason_str)
     except IndexError:
-        return(f'{disp1} {w1} - {w2} {disp2}')
+        result_string = '{} {} - {} {}'.format(disp1,w1,w2,disp2)
+
+    reply(result_string)
