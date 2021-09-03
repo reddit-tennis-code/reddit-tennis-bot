@@ -8,6 +8,14 @@ import datetime
 def rankhistory(text,reply):
     "<atp/wta> <player name> <YYYY-MM-DD> returns the official singles ranking of the player that week."
 
+    headers = {'GET': '/posts/35306761/ivc/15ce?_=1630535997785 HTTP/1.1',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0',
+        'Accept': '*/*',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive',
+        'Cookie': 'prov=a10aab95-0270-115d-b275-c5d684dde609'}
+
     rq = text.split(' ')
     if not rq:
         reply('Format: .rankhistory atp federer')
@@ -50,7 +58,7 @@ def rankhistory(text,reply):
 
     if num == '2':
         url = f'https://www.atptour.com/en/-/ajax/playersearch/PlayerUrlSearch?searchTerm={name_lookup}'
-        player_json = requests.get(url).json()
+        player_json = requests.get(url,headers=headers).json()
         if len(player_json['items']) > 1:
             reply('Multiple players returned. Please refine your search.')
             return
@@ -64,7 +72,7 @@ def rankhistory(text,reply):
         pname = player_json['items'][0]['Key']
 
         hist_url = f'https://www.atptour.com{new_url}'
-        page = requests.get(hist_url)
+        page = requests.get(hist_url,headers=headers)
         tree = html.fromstring(page.text)
         rank_rows = tree.xpath('//table[@class="mega-table"]/tbody/tr')
         monday1 = date_obj - datetime.timedelta(days=date_obj.weekday())
@@ -90,12 +98,12 @@ def rankhistory(text,reply):
                 return
     else:
         url = 'https://api.wtatennis.com/tennis/players/?page=0&pageSize=20&name={}&nationality='.format(name_lookup)
-        player_json = requests.get(url).json()
+        player_json = requests.get(url,headers=headers).json()
 
         player_url = 'https://api.wtatennis.com/tennis/players/{}/ranking?from={}-01-01&to={}-12-31&aggregation-method=weekly'.format(str(player_json['content'][0]['id']),date[0:4],date[0:4])
         pname = player_json['content'][0]['fullName']
 
-        rank_json = requests.get(player_url).json()
+        rank_json = requests.get(player_url,headers=headers).json()
         for wranking in rank_json['weeklyRankings']:
             week_rank = wranking['rankedAt'][0:10]
             rank_date = datetime.datetime.strptime(week_rank,'%Y-%m-%d')
