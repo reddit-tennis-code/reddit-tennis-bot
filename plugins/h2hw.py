@@ -1,20 +1,19 @@
 import requests
 from lxml import html
-
 from cloudbot import hook
 
-headers = {'GET': '/posts/35306761/ivc/15ce?_=1630535997785 HTTP/1.1',
+@hook.command('h2hw')
+def h2hw(text):
+    """<name/name> will bring up the head2head record of two WTA players."""
+
+    headers = {'GET': '/posts/35306761/ivc/15ce?_=1630535997785 HTTP/1.1',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0',
         'Accept': '*/*',
         'Accept-Language': 'en-US,en;q=0.5',
         'Accept-Encoding': 'gzip, deflate, br',
         'Connection': 'keep-alive',
         'Cookie': 'prov=a10aab95-0270-115d-b275-c5d684dde609'}
-
-
-@hook.command('h2hw')
-def h2hw(text):
-    """<name/name> will bring up the head2head record of two WTA players."""
+        
     rq = text
     if not rq:
         return('Format: .h2hw sharapova/serena')
