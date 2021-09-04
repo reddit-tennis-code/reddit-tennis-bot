@@ -257,10 +257,14 @@ def liverank(text,reply):
             num = int(text[1])
             if num >= 11 and num < 51:
                 num = num+1
-            elif num >= 51 and num < 250:
-                num = num+(math.floor(num/50)+1)
-            elif num >= 250:
-                num = num+5
+            elif num >= 51:
+                if num % 50 == 0:
+                    num = num+(math.floor(num/50))
+                else:
+                    num = num+(math.floor(num/50)+1)
+            
+            # elif num >= 250:
+            #     num = num+5
             row = rank_rows[num-1]
             try:
                 rank = row.xpath('td[1]/text()')[0].strip()
