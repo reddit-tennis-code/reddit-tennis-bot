@@ -3,7 +3,7 @@ from lxml import html
 from cloudbot import hook
 
 @hook.command('h2hw')
-def h2hw(text):
+def h2hw(text,reply):
     """<name/name> will bring up the head2head record of two WTA players."""
 
     headers = {'GET': '/posts/35306761/ivc/15ce?_=1630535997785 HTTP/1.1',
@@ -13,6 +13,9 @@ def h2hw(text):
         'Accept-Encoding': 'gzip, deflate, br',
         'Connection': 'keep-alive',
         'Cookie': 'prov=a10aab95-0270-115d-b275-c5d684dde609'}
+    
+    round_dict = {'R128': 'Round of 128', 'R64': 'Round of 64', 'R32': 'Round of 32', 'R16': 'Round of 16',
+              'Q': 'Quarterfinal', 'S': 'Semfinal', 'F': 'Final'}
         
     rq = text
     if not rq:
@@ -24,30 +27,30 @@ def h2hw(text):
     rq = rq.split('/')
 
     if rq[0] in nick_dict:
-        p1 = nick_dict[rq[0]]
-        disp1 = ' '.join(p1.split('_'))
+        name_lookup1 = nick_dict[rq[0]]
+        # url_name1 = '-'.join(name_lookup1.split('_'))
     else:
-        page = requests.get(f'http://www.tennisexplorer.com/list-players/?search-text-pl={rq[0]}')
+        page = requests.get('http://www.tennisexplorer.com/list-players/?search-text-pl={}'.format(rq[0]))
         tree = html.fromstring(page.text)
         try:
             p1text = tree.xpath('//table[@class="result"]/tbody/tr[1]/td[4]/a/text()')[0].split(',')
         except IndexError:
             return('Invalid name, probably.')
-        p1 = '_'.join([p1text[1][1:].replace(' ','_'),p1text[0].replace(' ','_')])
-        disp1 = ' '.join([p1text[1][1:],p1text[0]])
+        name_lookup1 = '%20'.join([p1text[1][1:].replace(' ','_'),p1text[0].replace(' ','_')])
+        # url_name1 = '-'.join([p1text[1][1:].replace(' ','_'),p1text[0].replace(' ','_')])
 
     if rq[1] in nick_dict:
-        p2 = nick_dict[rq[1]]
-        disp2 = ' '.join(p2.split('_'))
+        name_lookup2 = nick_dict[rq[0]]
+        # url_name2 = '-'.join(name_lookup2.split('_'))
     else:
-        page = requests.get(f'http://www.tennisexplorer.com/list-players/?search-text-pl={rq[1]}')
+        page = requests.get('http://www.tennisexplorer.com/list-players/?search-text-pl={}'.format(rq[1]))
         tree = html.fromstring(page.text)
         try:
             p2text = tree.xpath('//table[@class="result"]/tbody/tr[1]/td[4]/a/text()')[0].split(',')
         except IndexError:
             return('Invalid name, probably.')
-        p2 = '_'.join([p2text[1][1:].replace(' ','_'),p2text[0].replace(' ','_')])
-        disp2 = ' '.join([p2text[1][1:],p2text[0]])
+        name_lookup2 = '%20'.join([p2text[1][1:].replace(' ','_'),p2text[0].replace(' ','_')])
+        # url_name2 = '-'.join([p2text[1][1:].replace(' ','_'),p2text[0].replace(' ','_')])
 
     url1 = 'https://api.wtatennis.com/tennis/players/?page=0&pageSize=20&name={}&nationality='.format(name_lookup1)
     player_json1 = requests.get(url1).json()

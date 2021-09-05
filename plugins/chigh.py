@@ -41,17 +41,17 @@ def chigh(text,reply):
     if search_text in nick_dict:
         name_lookup = nick_dict[search_text]
     else:
-        page = requests.get(f'http://www.tennisexplorer.com/list-players/?search-text-pl={search_text}',headers=headers)
+        page = requests.get('http://www.tennisexplorer.com/list-players/?search-text-pl={}'.format(search_text),headers=headers)
         tree = html.fromstring(page.text)
         try:
-            p1text = tree.xpath(f'//table[@class="result"]/tbody/tr[1]/td[{num}]/a/text()')[0].split(',')
+            p1text = tree.xpath('//table[@class="result"]/tbody/tr[1]/td[{}]/a/text()'.format(num))[0].split(',')
         except IndexError:
             reply('Could not find player.')
         name_lookup = '%20'.join([p1text[1][1:].replace(' ','_'),p1text[0].replace(' ','_')])
         url_name = '-'.join([p1text[1][1:].replace(' ','_'),p1text[0].replace(' ','_')])
 
     if num == '2':
-        url = f'https://www.atptour.com/en/-/ajax/playersearch/PlayerUrlSearch?searchTerm={name_lookup}'
+        url = 'https://www.atptour.com/en/-/ajax/playersearch/PlayerUrlSearch?searchTerm={}'.format(name_lookup)
         player_json = requests.get(url,headers=headers).json()
         if len(player_json['items']) > 1:
             reply('Multiple players returned. Please refine your search.')
@@ -60,7 +60,7 @@ def chigh(text,reply):
             reply('No players found.')
             return
         
-        player_url = f'https://www.atptour.com{player_json["items"][0]["Value"]}'
+        player_url = 'https://www.atptour.com{}'.format(player_json['items'][0]['Value'])
         player_name = player_json['items'][0]['Key']
 
         ppage = requests.get(player_url,headers=headers)
@@ -69,7 +69,7 @@ def chigh(text,reply):
         date_raw = ptree.xpath('//table[@id="playersStatsTable"]/tbody/tr[2]/td[2]/div[2]')[0].get('data-singles-label').strip().split(' ')[-1]
         date_obj = datetime.datetime.strptime(date_raw,'%Y.%m.%d')
 
-        reply(f'{player_name}: Singles Career High = #{rank} (first reached on {date_obj.strftime("%B")} {date_obj.strftime("%d")}, {date_obj.strftime("%Y")})')
+        reply('{}: Singles Career High = #{} (first reached on {} {}, {})'.format(player_name,rank,date_obj.strftime("%B"),date_obj.strftime("%d"),date_obj.strftime("%Y")))
     else:
         url = 'https://api.wtatennis.com/tennis/players/?page=0&pageSize=20&name={}&nationality='.format(name_lookup)
         player_json = requests.get(url,headers=headers).json()
@@ -89,4 +89,4 @@ def chigh(text,reply):
             date_raw = ptree.xpath('//div[@class="rankings-overview-item"]/div[4]/text()')[0].strip()
             date_obj = datetime.datetime.strptime(date_raw,'%b %d, %Y')
 
-        reply(f'{player_name}: Singles Career High = #{rank} (first reached on {date_obj.strftime("%B")} {date_obj.strftime("%d")}, {date_obj.strftime("%Y")})')
+        reply('{}: Singles Career High = #{} (first reached on {} {}, {})'.format(player_name,rank,date_obj.strftime("%B"),date_obj.strftime("%d"),date_obj.strftime("%Y")))
