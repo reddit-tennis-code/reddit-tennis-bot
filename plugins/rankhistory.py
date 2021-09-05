@@ -22,7 +22,7 @@ def rankhistory(text,reply):
 
     nick_dict = {'shoulders':'Maria%20Sakkari','muguruza':'Garbine%20Muguruza','azarenka':'Victoria%20Azarenka', \
 	'dave':'Novak%20Djokovic','delpo':'delpo','evert':r'Chris%20Evert','bjk':r'Billie%20Jean%20King', \
-        'faa':r'Felix%20Auger%20Aliassime'}
+    'faa':r'Felix%20Auger%20Aliassime'}
 
     if rq[0] == 'atp':
         num = '2'
@@ -47,17 +47,17 @@ def rankhistory(text,reply):
     if search_text in nick_dict:
         name_lookup = nick_dict[search_text]
     else:
-        page = requests.get(f'http://www.tennisexplorer.com/list-players/?search-text-pl={search_text}')
+        page = requests.get('http://www.tennisexplorer.com/list-players/?search-text-pl={}'.format(search_text))
         tree = html.fromstring(page.text)
         try:
-            p1text = tree.xpath(f'//table[@class="result"]/tbody/tr[1]/td[{num}]/a/text()')[0].split(',')
+            p1text = tree.xpath('//table[@class="result"]/tbody/tr[1]/td[{}]/a/text()'.format(num))[0].split(',')
         except IndexError:
             reply('Could not find player.')
             return
         name_lookup = '%20'.join([p1text[1][1:].replace(' ','_'),p1text[0].replace(' ','_')])
 
     if num == '2':
-        url = f'https://www.atptour.com/en/-/ajax/playersearch/PlayerUrlSearch?searchTerm={name_lookup}'
+        url = 'https://www.atptour.com/en/-/ajax/playersearch/PlayerUrlSearch?searchTerm={}'.format(name_lookup)
         player_json = requests.get(url,headers=headers).json()
         if len(player_json['items']) > 1:
             reply('Multiple players returned. Please refine your search.')
@@ -71,30 +71,30 @@ def rankhistory(text,reply):
         new_url = '/'.join(split_end)
         pname = player_json['items'][0]['Key']
 
-        hist_url = f'https://www.atptour.com{new_url}'
+        hist_url = 'https://www.atptour.com{}'.format(new_url)
         page = requests.get(hist_url,headers=headers)
         tree = html.fromstring(page.text)
         rank_rows = tree.xpath('//table[@class="mega-table"]/tbody/tr')
         monday1 = date_obj - datetime.timedelta(days=date_obj.weekday())
         monday2 = (monday1 - datetime.timedelta(days=1)) - datetime.timedelta(days=(monday1 - datetime.timedelta(days=1)).weekday())
         wednesday1 = monday2 + datetime.timedelta(days=2)
-        datestr1 = f'{monday1.strftime("%Y")}.{monday1.strftime("%m")}.{monday1.strftime("%d")}'
-        datestr2 = f'{monday2.strftime("%Y")}.{monday2.strftime("%m")}.{monday2.strftime("%d")}'
-        datestr3 = f'{wednesday1.strftime("%Y")}.{wednesday1.strftime("%m")}.{wednesday1.strftime("%d")}'
+        datestr1 = '{}.{}.{}'.format(monday1.strftime("%Y"),monday1.strftime("%m"),monday1.strftime("%d"))
+        datestr2 = '{}.{}.{}'.format(monday2.strftime("%Y"),monday2.strftime("%m"),monday2.strftime("%d"))
+        datestr3 = '{}.{}.{}'.format(wednesday1.strftime("%Y"),wednesday1.strftime("%m"),wednesday1.strftime("%d"))
 
         for row in rank_rows:
             site_date = row.xpath('td[1]/text()')[0].strip()
             if site_date == datestr1:
                 rank = row.xpath('td[2]/text()')[0].strip()
-                reply(f'{pname}: #{rank} on {date_obj.strftime("%B")} {date_obj.strftime("%d")}, {date_obj.strftime("%Y")}')
+                reply('{}: #{} on {} {}, {}'.format(pname,rank,date_obj.strftime("%B"),date_obj.strftime("%d"),date_obj.strftime("%Y")))
                 return
             elif site_date == datestr2:
                 rank = row.xpath('td[2]/text()')[0].strip()
-                reply(f'{pname}: #{rank} on {date_obj.strftime("%B")} {date_obj.strftime("%d")}, {date_obj.strftime("%Y")}')
+                reply('{}: #{} on {} {}, {}'.format(pname,rank,date_obj.strftime("%B"),date_obj.strftime("%d"),date_obj.strftime("%Y")))
                 return
             elif site_date == datestr3:
                 rank = row.xpath('td[2]/text()')[0].strip()
-                reply(f'{pname}: #{rank} on {date_obj.strftime("%B")} {date_obj.strftime("%d")}, {date_obj.strftime("%Y")}')
+                reply('{}: #{} on {} {}, {}'.format(pname,rank,date_obj.strftime("%B"),date_obj.strftime("%d"),date_obj.strftime("%Y")))
                 return
     else:
         url = 'https://api.wtatennis.com/tennis/players/?page=0&pageSize=20&name={}&nationality='.format(name_lookup)
@@ -112,4 +112,4 @@ def rankhistory(text,reply):
                 reply('{}: #{} on {} {}, {}'.format(pname,rank,date_obj.strftime("%B"),date_obj.strftime("%d"),date_obj.strftime("%Y")))
                 return
 
-    reply(f'Valid date, but no ranking found for {pname} for that week.')
+    reply('Valid date, but no ranking found for {} for that week.'.format(pname))
